@@ -2,11 +2,11 @@
 
 These scripts can be used in the latest images.
 
-#### Setup:
+## Setup:
 - Install [docker desktop](https://www.docker.com/products/docker-desktop/) 
 - Install [cygwin](https://www.cygwin.com/) if you run windows
 
-#### [In Progress] Development
+## [In Progress] Development
 Clone the repo and cd into it:
 ```bash
 git clone https://github.com/mikotaichou/swmud-blight-scripts.git
@@ -32,7 +32,7 @@ docker run -it -v swmud:/home/miko/.config/blightmud/ \
     docker.io/mikotaichou/swblight:dev
 ```
 
-#### Latest Published Version:
+## Latest Published Version:
 This version does not require the scripts repo to function.
 
 ### Default
