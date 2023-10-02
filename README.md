@@ -16,7 +16,8 @@ cd swmud-blight-scripts
 ### Without Custom Character Scripts
 From the terminal and from this git directory WITHOUT customer character scripts:
 ```bash
-docker run -it -v swmud:/home/miko/.config/blightmud/ \
+docker run -it \
+    -v swmud:/home/miko/.config/blightmud/ \
     -v .:/home/miko/.config/blightmud \
     docker.io/mikotaichou/swblight:dev
 ```
@@ -26,7 +27,8 @@ docker run -it -v swmud:/home/miko/.config/blightmud/ \
 
 From the terminal and this git directory WITH customer character scripts:
 ```bash
-docker run -it -v swmud:/home/miko/.config/blightmud/ \
+docker run -it \
+    -v swmud:/home/miko/.config/blightmud/ \
     -v .:/home/miko/.config/blightmud \
     -v <LOCAL SCRIPT DIR>:/home/miko/.config/blightmud/private \
     docker.io/mikotaichou/swblight:dev
