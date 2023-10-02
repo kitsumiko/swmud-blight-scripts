@@ -13,8 +13,8 @@ CHAR_DATA = {
   prime_guild = "Unknown: "..C_BYELLOW.."<score>"..C_RESET,
   second_guild = "None",
   third_guild = "None",
-  racial_right_bracket = "calm",
-  racial_left_bracket = "trip",
+  racial_right_bracket = "",
+  racial_left_bracket = "",
   character_levels = "Unknown: "..C_BYELLOW.."<score>"..C_RESET,
   skill_delays = "",
 }
