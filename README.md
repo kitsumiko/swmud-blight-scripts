@@ -26,7 +26,7 @@ From the terminal and this git directory WITH customer character scripts:
 ```bash
 docker run -it -v swmud:/home/miko/.config/blightmud/ \
     -v 000_connect.lua:/home/miko/.config/blightmud/000_connect.lua \
-    -v <LOCAL SCRIPT FILE>:/home/miko/.config/blightmud/private/021_character.lua \
+    -v <LOCAL SCRIPT FILE>:/home/miko/.config/blightmud/private/020_character.lua \
     docker.io/mikotaichou/swblight:dev
 ```
 
@@ -49,7 +49,7 @@ docker run -it -v <LOCAL LOG PATH HERE>:/home/miko/.local/share/blightmud/logs \
 ### Default, Logs, and Custom Character Scriptfile
 To mount your own character lua automatically on startup, run:
 ```bash
-docker run -it -v <LOCAL SCRIPT FILE>:/home/miko/.config/blightmud/private/021_character.lua \
+docker run -it -v <LOCAL SCRIPT FILE>:/home/miko/.config/blightmud/private/020_character.lua \
     -v <LOCAL LOG PATH HERE>:/home/miko/.local/share/blightmud/logs \
     docker.io/mikotaichou/swblight:latest
 ```

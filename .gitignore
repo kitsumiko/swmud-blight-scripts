@@ -1,3 +1,4 @@
+*.ron
 private
 private/*
 swmud/private
