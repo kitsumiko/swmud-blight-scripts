@@ -17,16 +17,18 @@ cd swmud-blight-scripts
 From the terminal and from this git directory WITHOUT customer character scripts:
 ```bash
 docker run -it -v swmud:/home/miko/.config/blightmud/ \
-    -v 000_connect.lua:/home/miko/.config/blightmud/000_connect.lua \
+    -v .:/home/miko/.config/blightmud \
     docker.io/mikotaichou/swblight:dev
 ```
 
 ### With Custom Character Scripts
+*A file must be named 020_character.lua as an entrypoint in the mounted folder!*
+
 From the terminal and this git directory WITH customer character scripts:
 ```bash
 docker run -it -v swmud:/home/miko/.config/blightmud/ \
-    -v 000_connect.lua:/home/miko/.config/blightmud/000_connect.lua \
-    -v <LOCAL SCRIPT FILE>:/home/miko/.config/blightmud/private/020_character.lua \
+    -v .:/home/miko/.config/blightmud \
+    -v <LOCAL SCRIPT DIR>:/home/miko/.config/blightmud/private \
     docker.io/mikotaichou/swblight:dev
 ```
 
@@ -42,14 +44,18 @@ docker run -it docker.io/mikotaichou/swblight:latest
 ### Default with Logs
 If you would like to save the logs to your local machine automagically, run:
 ```bash
-docker run -it -v <LOCAL LOG PATH HERE>:/home/miko/.local/share/blightmud/logs \
+docker run -it \
+    -v <LOCAL LOG PATH HERE>:/home/miko/.local/share/blightmud/logs \
     docker.io/mikotaichou/swblight:latest
 ```
 
 ### Default, Logs, and Custom Character Scriptfile
+*A file must be named 020_character.lua as an entrypoint in the mounted folder!*
+
 To mount your own character lua automatically on startup, run:
 ```bash
-docker run -it -v <LOCAL SCRIPT FILE>:/home/miko/.config/blightmud/private/020_character.lua \
+docker run -it \
+    -v <LOCAL SCRIPT DIR>:/home/miko/.config/blightmud/private \
     -v <LOCAL LOG PATH HERE>:/home/miko/.local/share/blightmud/logs \
     docker.io/mikotaichou/swblight:latest
 ```
