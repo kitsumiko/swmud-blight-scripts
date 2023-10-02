@@ -45,3 +45,11 @@ end
 
 script_load()
 
+function RELOAD_SCRIPTS()
+  set_status_default()
+  script.reset()
+  trigger.clear()
+  alias.clear()
+  script_load()
+  blight.output()
+end

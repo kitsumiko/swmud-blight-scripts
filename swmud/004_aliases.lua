@@ -71,3 +71,21 @@ for k,v in pairs(PROMPT_INFO.move_commands) do
 end
 
 create_alias("^reprompt$", "prompt 2 5 6 9 12 4 11")
+
+function create_chat_alias(a_in, a_out, decoration)
+  alias.add("^" .. a_in .. " (.*)$", function (m)
+    if m ~= nil then
+      mud.send(a_out .. " " .. decoration .. " " .. m[2], {gag=1,})
+      PROMPT_INFO.save_raw_command = 0
+    end
+  end)
+end
+
+function create_tell_alias(a_in, a_out, decoration)
+  alias.add("^" .. a_in .. " ([a-zA-Z,]*) (.*)$", function (m)
+    if m ~= nil then
+      mud.send(a_out .. " " .. m[2] .. " " .. decoration .. " " .. m[3], {gag=1,})
+      PROMPT_INFO.save_raw_command = 0
+    end
+  end)
+end
