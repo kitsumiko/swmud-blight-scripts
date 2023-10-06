@@ -103,15 +103,15 @@ ROOM_TABLE = {beings = {},
               exits = {},
               my_droids = {}}
 
-DELAYS_HOOKS = {regex.new("^([a-zA-Z/]* ?[a-zA-Z/]* ?[a-zA-Z/]* ?[a-zA-Z/]*): ([ 0-9]*) seconds"),
-                regex.new("^([a-zA-Z/]* ?[a-zA-Z/]* ?[a-zA-Z/]* ?[a-zA-Z/]*): ([ 0-9]*) minutes"),
-                regex.new("^([a-zA-Z/]* ?[a-zA-Z/]* ?[a-zA-Z/]* ?[a-zA-Z/]*): ([ 0-9]*) minutes and ([0-9]*) seconds"),
-                regex.new("^([a-zA-Z/]* ?[a-zA-Z/]* ?[a-zA-Z/]* ?[a-zA-Z/]*): ([ 0-9]*) minute and ([0-9]*) seconds"),
-                regex.new("^([a-zA-Z/]* ?[a-zA-Z/]* ?[a-zA-Z/]* ?[a-zA-Z/]*): ([ 0-9]*) hour and ([0-9]*) seconds"),
-                regex.new("^([a-zA-Z/]* ?[a-zA-Z/]* ?[a-zA-Z/]* ?[a-zA-Z/]*): ([ 0-9]*) hours and ([0-9]*) seconds"),
-                regex.new("^([a-zA-Z/]* ?[a-zA-Z/]* ?[a-zA-Z/]* ?[a-zA-Z/]*): ([ 0-9]*) hours and ([0-9]*) minutes"),
-                regex.new("^([a-zA-Z/]* ?[a-zA-Z/]* ?[a-zA-Z/]* ?[a-zA-Z/]*): ([ 0-9]*) hour, ([0-9]*) minutes, and ([0-9]*) seconds"),
-                regex.new("^([a-zA-Z/]* ?[a-zA-Z/]* ?[a-zA-Z/]* ?[a-zA-Z/]*): ([ 0-9]*) hours, ([0-9]*) minutes, and ([0-9]*) seconds"),}
+DELAYS_HOOKS = {regex.new("^([a-zA-Z/]* ?[a-zA-Z/]* ?[a-zA-Z/]* ?[a-zA-Z/]*): ([ 0-9]*) seconds$"),
+                regex.new("^([a-zA-Z/]* ?[a-zA-Z/]* ?[a-zA-Z/]* ?[a-zA-Z/]*): ([ 0-9]*) minutes$"),
+                regex.new("^([a-zA-Z/]* ?[a-zA-Z/]* ?[a-zA-Z/]* ?[a-zA-Z/]*): ([ 0-9]*) minutes and ([0-9]*) seconds$"),
+                regex.new("^([a-zA-Z/]* ?[a-zA-Z/]* ?[a-zA-Z/]* ?[a-zA-Z/]*): ([ 0-9]*) minute and ([0-9]*) seconds$"),
+                regex.new("^([a-zA-Z/]* ?[a-zA-Z/]* ?[a-zA-Z/]* ?[a-zA-Z/]*): ([ 0-9]*) hour and ([0-9]*) seconds$"),
+                regex.new("^([a-zA-Z/]* ?[a-zA-Z/]* ?[a-zA-Z/]* ?[a-zA-Z/]*): ([ 0-9]*) hours and ([0-9]*) seconds$"),
+                regex.new("^([a-zA-Z/]* ?[a-zA-Z/]* ?[a-zA-Z/]* ?[a-zA-Z/]*): ([ 0-9]*) hours and ([0-9]*) minutes$"),
+                regex.new("^([a-zA-Z/]* ?[a-zA-Z/]* ?[a-zA-Z/]* ?[a-zA-Z/]*): ([ 0-9]*) hour, ([0-9]*) minutes, and ([0-9]*) seconds$"),
+                regex.new("^([a-zA-Z/]* ?[a-zA-Z/]* ?[a-zA-Z/]* ?[a-zA-Z/]*): ([ 0-9]*) hours, ([0-9]*) minutes, and ([0-9]*) seconds$"),}
 SKILL_DELAYS_WIN = {}
 
 SESSION_INFO = {session_start = os.time(),}
