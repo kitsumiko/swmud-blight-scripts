@@ -166,6 +166,7 @@ local function get_time_diff(delay_match, inc_line)
   if TABLE_LENGTH(delay_match) == 5 then
     time_diff = 60*60*tonumber(TRIM_STRING(delay_match[3])) + 60*tonumber(TRIM_STRING(delay_match[4])) + tonumber(TRIM_STRING(delay_match[5]))
   end
+  -- blight.output(inc_line .. "  " .. tostring(time_diff) .. "  " .. tostring(TABLE_LENGTH(delay_match)))
   return time_diff
 end
 
