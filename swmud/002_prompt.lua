@@ -142,13 +142,26 @@ local function score_process(line)
   end
 end
 
-local function get_time_diff(delay_match)
+local function get_time_diff(delay_match, inc_line)
   local time_diff = 0
   if TABLE_LENGTH(delay_match) == 3 then
-    time_diff = tonumber(TRIM_STRING(delay_match[3]))
+    if string.find(inc_line, 'minute')~=nil then
+      time_diff = 60*tonumber(TRIM_STRING(delay_match[3]))
+    end
+    if string.find(inc_line, 'second')~=nil then
+      time_diff = tonumber(TRIM_STRING(delay_match[3]))
+    end
   end
   if TABLE_LENGTH(delay_match) == 4 then
-    time_diff = 60*tonumber(TRIM_STRING(delay_match[3])) + tonumber(TRIM_STRING(delay_match[4]))
+    if string.find(inc_line, 'minute')~=nil and string.find(inc_line, 'second')~=nil then
+      time_diff = 60*tonumber(TRIM_STRING(delay_match[3])) + tonumber(TRIM_STRING(delay_match[4]))
+    end
+    if string.find(inc_line, 'hour')~=nil and string.find(inc_line, 'second')~=nil then
+      time_diff = 60*60*tonumber(TRIM_STRING(delay_match[3])) + tonumber(TRIM_STRING(delay_match[4]))
+    end
+    if string.find(inc_line, 'hour')~=nil and string.find(inc_line, 'minute')~=nil then
+      time_diff = 60*60*tonumber(TRIM_STRING(delay_match[3])) + 60*tonumber(TRIM_STRING(delay_match[4]))
+    end
   end
   if TABLE_LENGTH(delay_match) == 5 then
     time_diff = 60*60*tonumber(TRIM_STRING(delay_match[3])) + 60*tonumber(TRIM_STRING(delay_match[4])) + tonumber(TRIM_STRING(delay_match[5]))
@@ -222,7 +235,7 @@ local function delays_process(line)
     if delay_match ~= nil then
       local table_key = delay_match[2]
       -- blight.output(table_key)
-      local time_diff = get_time_diff(delay_match)
+      local time_diff = get_time_diff(delay_match, line:line())
       -- blight.output(time_diff)
       local rematch_caught = nil
       if SET_VALUE_CONTAINS(DELAYS_REMAP, delay_match[2]) then

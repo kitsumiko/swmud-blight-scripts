@@ -104,6 +104,7 @@ ROOM_TABLE = {beings = {},
               my_droids = {}}
 
 DELAYS_HOOKS = {regex.new("^([a-zA-Z/]* ?[a-zA-Z/]* ?[a-zA-Z/]* ?[a-zA-Z/]*): ([ 0-9]*) seconds"),
+                regex.new("^([a-zA-Z/]* ?[a-zA-Z/]* ?[a-zA-Z/]* ?[a-zA-Z/]*): ([ 0-9]*) minutes"),
                 regex.new("^([a-zA-Z/]* ?[a-zA-Z/]* ?[a-zA-Z/]* ?[a-zA-Z/]*): ([ 0-9]*) minutes and ([0-9]*) seconds"),
                 regex.new("^([a-zA-Z/]* ?[a-zA-Z/]* ?[a-zA-Z/]* ?[a-zA-Z/]*): ([ 0-9]*) minute and ([0-9]*) seconds"),
                 regex.new("^([a-zA-Z/]* ?[a-zA-Z/]* ?[a-zA-Z/]* ?[a-zA-Z/]*): ([ 0-9]*) hour and ([0-9]*) seconds"),
