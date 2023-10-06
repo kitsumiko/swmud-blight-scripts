@@ -98,6 +98,18 @@ function PAD_PERCENT(pct_in, add_space)
   return new_string
 end
 
+function CONVERT_MUD_DATE(string_in)
+  -- string_in="Sat Nov  4 00:01:15 2023 EST"
+  local date={}
+  date['month'],date['day'],date['hour'],date['min'],date['sec'],date['year']=string_in:match("%a+ (%a+) ( %d+) (%d+):(%d+):(%d+) (%d+)")
+  local MON={Jan=1,Feb=2,Mar=3,Apr=4,May=5,Jun=6,Jul=7,Aug=8,Sep=9,Oct=10,Nov=11,Dec=12}
+  date['month']=MON[date['month']]
+  date["isdst"] = false 
+  -- local offset=os.time()-os.time(os.date("!*t"))
+  local date_out = os.time(date) -- +offset
+  return date_out
+end
+
 -- index functions
 function INDEX_OF(array, value)
     for i, v in ipairs(array) do

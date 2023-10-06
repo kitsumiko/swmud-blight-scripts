@@ -74,18 +74,23 @@ local function update_skill_status()
     for k,v in pairs(SKILL_TABLE_WIN) do
       if v ~= nil then
         local total_time = 2*4-1
+        local max_time = 2*4-1
         if SET_CONTAINS(SKILL_DELAY_TABLE_WIN, k) then
           total_time = 2*SKILL_DELAY_TABLE_WIN[k] - 1
+          max_time = 2*SKILL_DELAY_TABLE_WIN[k] - 1
         end
-        local time_check = math.floor(total_time - os.difftime(os.time(), v))
-        -- local time_check = math.floor(os.difftime(os.time(), v))
-        -- blight.output(tostring(k))
-        -- blight.output(tostring(total_time))
-        -- blight.output(tostring(time_check))
-        -- blight.output(tostring(os.time()))
-        -- blight.output(tostring(v))
-        if time_check > 0 then
-          temp_add = temp_add .. k .. " (".. GET_COLOR(time_check / total_time) .. tostring(time_check) .. C_RESET..") "
+        if SET_CONTAINS(SKILL_DELAY_TABLE_SHIM, k) then
+          total_time = 2*SKILL_DELAY_TABLE_SHIM[k] - 1
+          max_time = math.max(2*SKILL_DELAY_TABLE_WIN[k] - 1, 2*SKILL_DELAY_TABLE_SHIM[k] - 1)
+        end
+        local time_check = math.floor(max_time - os.difftime(os.time(), v))
+        local time_out = math.floor(2*total_time - os.difftime(os.time(), v))
+        -- blight.output(tostring(time_check) .. "  " .. tostring(time_out))
+        if time_out > 0 then
+          if time_check < 0 then
+            time_check = time_out
+          end
+          temp_add = temp_add .. k .. " (".. GET_COLOR(time_check / max_time) .. tostring(time_out) .. C_RESET..") "
         else
           SKILL_TABLE_WIN[k] = nil
         end
@@ -171,21 +176,26 @@ local function get_time_diff(delay_match, inc_line)
 end
 
 local function update_skill_table(table_key, time_diff)
-  -- blight.output("Before")
+  -- blight.output("Before - Delay")
   -- if SET_CONTAINS(SKILL_DELAY_TABLE_WIN, table_key) then
   --   blight.output(SKILL_DELAY_TABLE_WIN[table_key])
   -- end
+  -- blight.output("Before - skill succeed")
   -- if SET_CONTAINS(SKILL_TABLE_WIN, table_key) then
   --   blight.output(SKILL_TABLE_WIN[table_key])
   -- end
   -- -- time diff is in seconds
+  -- blight.output("Before - key")
   -- blight.output(table_key)
+  -- blight.output("Before - time diff")
   -- blight.output(time_diff)
+  -- blight.output("Before - current table")
   -- for k,v in pairs(SKILL_TABLE_WIN) do
   --   blight.output(tostring(k))
   --   blight.output(tostring(v))
   -- end
   if tonumber(time_diff) ~= 0 then
+
     ---- DELAY SECTION - delays are in seconds
     -- exist_delay = the delay calculated off of existing skill win delay data
     local exist_delay = 4
@@ -200,6 +210,8 @@ local function update_skill_table(table_key, time_diff)
     -- provided_delay = the delay calculated off of the delays command feed
     -- this will always be accurate for the end, but never for the total time
     local provided_delay = math.floor((time_diff+1)/2)
+    -- always place the most recent delay in the shim
+    SKILL_DELAY_TABLE_SHIM[table_key] = provided_delay
     -- first adjust the delay table if we think it's wrong
     if exist_delay > recorded_delay then
       SKILL_DELAY_TABLE_WIN[table_key] = exist_delay
@@ -209,16 +221,7 @@ local function update_skill_table(table_key, time_diff)
     if provided_delay > recorded_delay then
       SKILL_DELAY_TABLE_WIN[table_key] = provided_delay
     end
-    -- delay table is now correct
-    if SET_CONTAINS(SKILL_TABLE_WIN, table_key) then
-      -- we have a previously recorded win, check if we should reset this timer
-      if os.time() - provided_delay > SKILL_TABLE_WIN[table_key] then
-        -- the provided delay from delays has a timestamp of win greater than the current TS
-      end
-    else
-      -- new skill record, back calculate the success, we see how much time is left with provided_delay
-      SKILL_TABLE_WIN[table_key] = os.time() - provided_delay
-    end
+    SKILL_TABLE_WIN[table_key] = os.time() - time_diff
     -- blight.output("After")
     -- for k,v in pairs(SKILL_TABLE_WIN) do
     --   blight.output(tostring(k))
@@ -328,6 +331,12 @@ local function status_draw()
       SETUP_STATE.uptime_set = 1
     end
   end
+  if SETUP_STATE.reboot_set==0 then
+    local test_str = store.session_read("reboot_data")
+    if test_str ~= nil then
+      SETUP_STATE.reboot_set = 1
+    end
+  end
   local term_w, term_h = blight.terminal_dimensions()
 
   -- Vitals Line
@@ -375,13 +384,22 @@ local function status_draw()
     move_line = move_line .. C_BYELLOW .." (set_move) " .. C_RESET
   end
   local move_line_len = string.len(STRIP_COLOR(move_line))
-  local date_start = term_w - 94 - rep_cmd_len - move_line_len
+  
   local date_line = rep_cmd_line .. move_line .. C_RESET
-  date_line = date_line .. C_GREEN .. string.rep("-", date_start) .. C_RESET .. "  "
-  date_line = date_line .. "Idle: " .. os.date("!%H:%M:%S", idle_diff) .. STATUS_SEP
-  date_line = date_line .. "S: " .. os.date("!%H:%M:%S", session_diff) .. STATUS_SEP
-  date_line = date_line .. "R: " .. SETUP_STATE.uptime_str .. STATUS_SEP
-  date_line = date_line .. "T: " .. os.date("%c") .. C_RESET
+  local reboot_diff = SETUP_STATE.uptime_str
+  if SETUP_STATE.reboot_set == 1 and SETUP_STATE.uptime_set == 1 then
+    local reboot_ttl = math.floor(os.difftime(CONVERT_MUD_DATE(SETUP_STATE.uptime_str), os.time()))
+    reboot_diff = tostring(math.floor(reboot_ttl/24/60/60)) .. "d " .. os.date("!%Hh %Mm %Ss", reboot_ttl)
+  end
+  
+  local date_line_end = "Idle: " .. os.date("!%H:%M:%S", idle_diff) .. STATUS_SEP
+  date_line_end = date_line_end .. "S: " .. os.date("!%H:%M:%S", session_diff) .. STATUS_SEP
+  date_line_end = date_line_end .. "R: " .. reboot_diff .. STATUS_SEP
+  date_line_end = date_line_end .. "T: " .. os.date("%c") .. C_RESET
+
+  local date_line_end_len = string.len(STRIP_COLOR(date_line_end))
+  local date_start = term_w - rep_cmd_len - move_line_len - date_line_end_len - 6
+  date_line = date_line .. C_GREEN .. string.rep("-", date_start) .. C_RESET .. "  " .. date_line_end
 
   -- Status + Char Data + exp etc...
   local info_line = TARGET_INFO.status_line .. STATUS_SEP
@@ -639,6 +657,14 @@ end)
 trigger.add("^Next scheduled reboot: (.*) [()](.*) EST[)]$", {}, function (m)
   store.session_write("uptime_data", m[3])
   SETUP_STATE.uptime_set = 0
+end)
+
+-- reboot capture trigger
+trigger.add("^SWmud has been up for:([ ]*)([0-9]*)d([ ]*)([0-9]*)h([ ]*)([0-9]*)m([ ]*)([0-9]*)s. ", {}, function (m)
+  local boot_time_delta = tonumber(m[3])*24*60*60 + tonumber(m[5])*60*60 + tonumber(m[7])*60 + tonumber(m[9])
+  local boot_time = os.time() - boot_time_delta
+  store.session_write("reboot_data", boot_time)
+  SETUP_STATE.reboot_set = 1
 end)
 
 -- expcheck triggers
