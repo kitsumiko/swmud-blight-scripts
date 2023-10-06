@@ -22,6 +22,7 @@ CHAR_DATA = {
 SETUP_STATE = {
   prompt_set = 0,
   uptime_set = 0,
+  reboot_set = 0,
   uptime_str = "Unknown: "..C_BYELLOW.."<uptime>"..C_RESET,
 }
 
@@ -124,6 +125,7 @@ DPR_TRIGGER_TABLE = {t0 = {},
 SKILL_TABLE_WIN = {}
 SKILL_TABLE_FAIL = {}
 SKILL_DELAY_TABLE_WIN = {}
+SKILL_DELAY_TABLE_SHIM = {}
 SKILL_DELAY_TABLE_FAIL = {}
 
 --
