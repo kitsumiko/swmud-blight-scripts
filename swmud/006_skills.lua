@@ -135,12 +135,9 @@ create_skill("linehack", "^You crack into the line\\.", "^You fail to hack the l
 create_skill("nanoheal", "^You run the parts through a compartment on your slicertool and it synthesizes some healing nanites. You startup the programming script and before you know it, your healing nanites are ready to go. The dust-like bots disappear through your skin and you start to feel better\\.",
                         "^You run the parts through a compartment on your slicertool and it synthesizes some healing nanites. As you start the programming script, something goes wrong and the dust-like nanites fall harmlessly to the ground\\.",
                         300, 4)
-create_skill("nanoheal", nil, "^As you run the parts through a compartment on your slicertool, something goes badly wrong and it spits out metallic dust\\.",
-                        300, 4)
-create_skill("nanoheal", nil, "^Your slicertool successfully synthesizes the tiny bots, but you accidentally breathe a bit too hard blowing the tiny dust-like droids into oblivion\\.",
-                        300, 4)
-create_skill("nanoheal", nil, "^Your slicertool seems to have crashed when attempting to synthesize the healing nanites. Must be a glitch in the software\\.",
-300, 4)
+create_skill("nanoheal", nil, "^As you run the parts through a compartment on your slicertool, something goes badly wrong and it spits out metallic dust\\.",300, 4)
+create_skill("nanoheal", nil, "^Your slicertool successfully synthesizes the tiny bots, but you accidentally breathe a bit too hard blowing the tiny dust-like droids into oblivion\\.",300, 4)
+create_skill("nanoheal", nil, "^Your slicertool seems to have crashed when attempting to synthesize the healing nanites. Must be a glitch in the software\\.", 300, 4)
 create_skill("healing_nanites", "^You thrust the nanoinjector into your thigh and release a swarm of nanites into your bloodstream\\.", nil, 60, 4)
 create_skill("nanoinject", nil, "^You attempt to deliver the nanites, but fail\\.", 60, 4)
 create_skill("damage_nanites", "^You (thrust the nanoinjector into) .* flesh and unload a swarm of nanites into its bloodstream\\.", nil, 4, 4)
@@ -157,4 +154,5 @@ DELAYS_REMAP = {droid_construct = "droid construct",
                 absorb = "absorb/dissipate energy",
                 bmed = "jedi battle meditation",}
 DELAYS_REMAP2 = {healing_nanites = "healing nanite cooldown",
-                nanoheal = "cureall surgery or nanoheal",}
+                nanoheal = "cureall surgery or nanoheal",
+                cureall = "cureall surgery or nanoheal",}
