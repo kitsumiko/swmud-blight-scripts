@@ -241,18 +241,16 @@ local function delays_process(line)
       -- blight.output(table_key)
       local time_diff = get_time_diff(delay_match, line:line())
       -- blight.output(time_diff)
-      local rematch_caught = nil
+      blight.output(line:line() .. "  " .. tostring(time_diff) .. "  " .. tostring(TABLE_LENGTH(delay_match)) .. " " .. tostring(delay_match[2]))
       if SET_VALUE_CONTAINS(DELAYS_REMAP, delay_match[2]) then
         table_key = SET_REVERSE_LOOKUP(DELAYS_REMAP, delay_match[2])
+        -- blight.output(table_key .. " " .. tostring(time_diff))
         update_skill_table(table_key, time_diff)
-        rematch_caught = 1
       end
       if SET_VALUE_CONTAINS(DELAYS_REMAP2, delay_match[2]) then
-        if rematch_caught == nil then
-          table_key = SET_REVERSE_LOOKUP(DELAYS_REMAP2, delay_match[2])
-          update_skill_table(table_key, time_diff)
-          rematch_caught = 1
-        end
+        table_key = SET_REVERSE_LOOKUP(DELAYS_REMAP2, delay_match[2])
+        -- blight.output(table_key .. " " .. tostring(time_diff))
+        update_skill_table(table_key, time_diff)
       end
       if rematch_caught == nil then
         update_skill_table(table_key, time_diff)
