@@ -74,6 +74,7 @@ PROMPT_INFO = {
   guilds = {"Jedi", "Mercenary", "Pilot", "Scientist", "Smuggler", "Diplomat", "Bounty Hunter", "Slicer", "Assassin", "Merchant", "Scout",},
   move_commands = {"n", "north", "e", "east", "w", "west", "s", "south", "ne", "northeast", "nw", "northwest", "se", "southeast", "sw", "southwest", "d", "down", "u", "up", "exit",},
   move_cmd = "",
+  durable_skill_status = "",
 }
 
 DPR_INFO = {status_line = "DPR: N/A",}
@@ -127,6 +128,12 @@ SKILL_TABLE_FAIL = {}
 SKILL_DELAY_TABLE_WIN = {}
 SKILL_DELAY_TABLE_SHIM = {}
 SKILL_DELAY_TABLE_FAIL = {}
+
+SKILL_STATUS_TABLE = {}
+SKILL_STATUS_EST = {}
+SKILL_STATUS_START = {}
+SKILL_STATUS_END = {}
+SKILL_STATUS_LEN = {}
 
 --
 -- store.session_write("char_data", json.encode(char_data))

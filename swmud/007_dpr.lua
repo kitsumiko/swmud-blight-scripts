@@ -105,7 +105,7 @@ local function update_dpr_status()
     end
     if assist_dpr == 1 then
       if total_dpr ~= nil then
-        base_str = "T: " .. DPR_COLOR(total_dpr) .. STATUS_SEP .. base_str        
+        base_str = "tDPR: " .. DPR_COLOR(total_dpr) .. STATUS_SEP .. base_str        
       end
     end
     PROMPT_INFO.total_dpr = total_dpr

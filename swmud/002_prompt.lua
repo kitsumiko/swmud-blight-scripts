@@ -118,6 +118,39 @@ local function update_skill_status()
   CHAR_DATA.skill_delays = out_str
 end
 
+local function update_durable_skill_status()
+  local out_str = "S: "
+  local caught_status = 0
+  if TABLE_LENGTH(SKILL_STATUS_TABLE)>0 then
+    for sk_name,v in pairs(SKILL_STATUS_TABLE) do
+      if v == 1 then
+        caught_status = 1
+        local sk_ttl = "??"
+        local sk_color = GET_COLOR(0)
+        local base_len = nil
+        if SKILL_STATUS_LEN[sk_name] ~= nil then
+          base_len = SKILL_STATUS_LEN[sk_name]
+        end
+        if SKILL_STATUS_EST[sk_name] ~= nil then
+          base_len = SKILL_STATUS_EST[sk_name]
+        end
+        if base_len ~= nil then
+          sk_ttl = tostring(base_len - math.floor(os.difftime(os.time(), SKILL_STATUS_START[sk_name])))
+          sk_color = GET_COLOR(tonumber(sk_ttl) / base_len)
+        end
+        if sk_color == nil then
+          sk_color = GET_COLOR(0)
+        end
+        out_str = out_str .. sk_name .. " (" .. sk_color .. sk_ttl .. C_RESET .. ") "
+      end
+    end
+  end
+  if caught_status == 0 then
+    out_str = ""
+  end
+  PROMPT_INFO.durable_skill_status = out_str
+end
+
 local function score_process(line)
   local score_matches = PROMPT_INFO.level_regexp:match_all(line:line())
   if score_matches ~= nil then
@@ -241,7 +274,7 @@ local function delays_process(line)
       -- blight.output(table_key)
       local time_diff = get_time_diff(delay_match, line:line())
       -- blight.output(time_diff)
-      blight.output(line:line() .. "  " .. tostring(time_diff) .. "  " .. tostring(TABLE_LENGTH(delay_match)) .. " " .. tostring(delay_match[2]))
+      -- blight.output(line:line() .. "  " .. tostring(time_diff) .. "  " .. tostring(TABLE_LENGTH(delay_match)) .. " " .. tostring(delay_match[2]))
       if SET_VALUE_CONTAINS(DELAYS_REMAP, delay_match[2]) then
         table_key = SET_REVERSE_LOOKUP(DELAYS_REMAP, delay_match[2])
         -- blight.output(table_key .. " " .. tostring(time_diff))
@@ -318,6 +351,7 @@ local function status_draw()
   update_character_status()
   update_skill_status()
   update_target_status()
+  update_durable_skill_status()
   if SETUP_STATE.prompt_set==0 then
     blight.status_height(4)
     SETUP_STATE.prompt_set = 1
@@ -362,9 +396,7 @@ local function status_draw()
   end
   vitals_line = vitals_line .. C_RESET
 
-  -- Cmd Info + Move Info + Date Line
-  local idle_diff = os.difftime(os.time(), PROMPT_INFO.last_command_time)
-  local session_diff = os.difftime(os.time(), SESSION_INFO.session_start)
+  -- Cmd Info + Move Info + Date Line + durable skills
   local lst_cmd = PROMPT_INFO.last_repeat_command
   if lst_cmd == "" then
     lst_cmd = C_BYELLOW .. "None" .. C_RESET
@@ -373,30 +405,39 @@ local function status_draw()
   local rep_cmd_len = string.len(STRIP_COLOR(rep_cmd_line))
   local move_cmd = PROMPT_INFO.move_cmd
   if move_cmd == "" then
-    move_cmd = C_BYELLOW .. "<set_move> " .. C_RESET
+    move_cmd = C_BYELLOW .. "<set_move>" .. C_RESET
   end
   local move_line = C_RESET .. "Move: " .. C_BYELLOW .. tostring(move_cmd) .. C_RESET
   if PROMPT_INFO.move_cmd == "" then
     move_line = move_line
   else
-    move_line = move_line .. C_BYELLOW .." (set_move) " .. C_RESET
+    move_line = move_line .. C_BYELLOW .." (set_move)" .. C_RESET
   end
   local move_line_len = string.len(STRIP_COLOR(move_line))
   
-  local date_line = rep_cmd_line .. move_line .. C_RESET
+  local durable_skill_line = " "
+  local durable_skill_line_len = string.len(STRIP_COLOR(PROMPT_INFO.durable_skill_status))
+  if durable_skill_line_len>0 then
+    durable_skill_line = STATUS_SEP .. PROMPT_INFO.durable_skill_status
+  end
+  
+  local date_line = rep_cmd_line .. move_line .. durable_skill_line .. C_RESET
+
   local reboot_diff = SETUP_STATE.uptime_str
   if SETUP_STATE.reboot_set == 1 and SETUP_STATE.uptime_set == 1 then
     local reboot_ttl = math.floor(os.difftime(CONVERT_MUD_DATE(SETUP_STATE.uptime_str), os.time()))
     reboot_diff = tostring(math.floor(reboot_ttl/24/60/60)) .. "d " .. os.date("!%Hh %Mm %Ss", reboot_ttl)
   end
   
+  local idle_diff = os.difftime(os.time(), PROMPT_INFO.last_command_time)
+  local session_diff = os.difftime(os.time(), SESSION_INFO.session_start)
   local date_line_end = "Idle: " .. os.date("!%H:%M:%S", idle_diff) .. STATUS_SEP
   date_line_end = date_line_end .. "S: " .. os.date("!%H:%M:%S", session_diff) .. STATUS_SEP
   date_line_end = date_line_end .. "R: " .. reboot_diff .. STATUS_SEP
   date_line_end = date_line_end .. "T: " .. os.date("%c") .. C_RESET
 
   local date_line_end_len = string.len(STRIP_COLOR(date_line_end))
-  local date_start = term_w - rep_cmd_len - move_line_len - date_line_end_len - 6
+  local date_start = term_w - rep_cmd_len - move_line_len - date_line_end_len - durable_skill_line_len - 6
   date_line = date_line .. C_GREEN .. string.rep("-", date_start) .. C_RESET .. "  " .. date_line_end
 
   -- Status + Char Data + exp etc...
