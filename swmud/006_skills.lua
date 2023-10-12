@@ -191,7 +191,8 @@ create_skill("nanoinject", nil, "^You attempt to deliver the nanites, but fail\\
 create_skill("damage_nanites", "^You (thrust the nanoinjector into) .* flesh and unload a swarm of nanites into its bloodstream\\.", nil, 4, 4)
 create_skill("heal", "^You heal yourself\\.", "You fail to heal yourself\\.", 1, 1, 1)
 create_skill("presist", "^You remove some of the drugs from your system\\.", "^You reach out with the Force to cleanse yourself, but your concentration is broken\\.", 2, 2, 1)
-create_skill("hack_bank", "^You have managed to funnel.*", nil, 21600, 4)
+create_skill("hack_bank", "^You have managed to funnel.*", nil, 86400, 4)
+create_skill("isard_station", "^The Imperial officer appears on the screen again. He listens to your report with worry etched across his face\\.", nil, 79200)
 
 -- delays catch
 DELAYS_REMAP = {droid_construct = "droid construct",

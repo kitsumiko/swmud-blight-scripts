@@ -90,7 +90,7 @@ local function update_skill_status()
           if time_check < 0 then
             time_check = time_out
           end
-          temp_add = temp_add .. k .. " (".. GET_COLOR(time_check / max_time) .. tostring(time_out) .. C_RESET..") "
+          temp_add = temp_add .. k .. " (".. GET_COLOR(1 - time_check / max_time) .. tostring(time_out) .. C_RESET..") "
         else
           SKILL_TABLE_WIN[k] = nil
         end
@@ -103,7 +103,7 @@ local function update_skill_status()
         local total_time = 2*SKILL_DELAY_TABLE_FAIL[k] - 1
         local time_check = math.floor(total_time - os.difftime(os.time(), v))
         if time_check > 0 then
-          temp_add = temp_add .. k .. " (".. GET_COLOR(time_check / total_time) .. tostring(time_check) .. C_RESET..") "
+          temp_add = temp_add .. k .. " (".. GET_COLOR(1 - time_check / total_time) .. tostring(time_check) .. C_RESET..") "
         else
           SKILL_TABLE_FAIL[k] = nil
         end
