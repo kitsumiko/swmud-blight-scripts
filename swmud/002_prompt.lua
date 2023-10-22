@@ -73,24 +73,25 @@ local function update_skill_status()
   if TABLE_LENGTH(SKILL_TABLE_WIN)>0 then
     for k,v in pairs(SKILL_TABLE_WIN) do
       if v ~= nil then
-        local total_time = 2*4-1
-        local max_time = 2*4-1
+        local total_time = 4
+        local max_time = 4
         if SET_CONTAINS(SKILL_DELAY_TABLE_WIN, k) then
-          total_time = 2*SKILL_DELAY_TABLE_WIN[k] - 1
-          max_time = 2*SKILL_DELAY_TABLE_WIN[k] - 1
+          total_time = SKILL_DELAY_TABLE_WIN[k]
+          max_time = SKILL_DELAY_TABLE_WIN[k]
         end
         if SET_CONTAINS(SKILL_DELAY_TABLE_SHIM, k) then
-          total_time = 2*SKILL_DELAY_TABLE_SHIM[k] - 1
-          max_time = math.max(2*SKILL_DELAY_TABLE_WIN[k] - 1, 2*SKILL_DELAY_TABLE_SHIM[k] - 1)
+          total_time = SKILL_DELAY_TABLE_SHIM[k]
+          max_time = math.max(SKILL_DELAY_TABLE_WIN[k], SKILL_DELAY_TABLE_SHIM[k])
         end
-        local time_check = math.floor(max_time - os.difftime(os.time(), v))
-        local time_out = math.floor(2*total_time - os.difftime(os.time(), v))
-        -- blight.output(tostring(time_check) .. "  " .. tostring(time_out))
-        if time_out > 0 then
-          if time_check < 0 then
-            time_check = time_out
-          end
-          temp_add = temp_add .. k .. " (".. GET_COLOR(1 - time_check / max_time) .. tostring(time_out) .. C_RESET..") "
+        local rep_time = math.floor(total_time - os.difftime(os.time(), v))
+        -- blight.output(tostring(rep_time))
+        if rep_time <= 0 then
+          rep_time = total_time + math.floor(max_time - os.difftime(os.time(), v))
+        end
+        -- blight.output(tostring(rep_time))
+        -- blight.output(tostring(rep_time) .. " " .. tostring(v) .. " " .. tostring(os.difftime(os.time(), v)))
+        if rep_time > 0 then
+          temp_add = temp_add .. k .. " (".. GET_COLOR(total_time / max_time) .. tostring(rep_time) .. C_RESET..") "
         else
           SKILL_TABLE_WIN[k] = nil
         end
@@ -100,7 +101,7 @@ local function update_skill_status()
   if TABLE_LENGTH(SKILL_TABLE_FAIL)>0 then
     for k,v in pairs(SKILL_TABLE_FAIL) do
       if v ~= nil then
-        local total_time = 2*SKILL_DELAY_TABLE_FAIL[k] - 1
+        local total_time = SKILL_DELAY_TABLE_FAIL[k]
         local time_check = math.floor(total_time - os.difftime(os.time(), v))
         if time_check > 0 then
           temp_add = temp_add .. k .. " (".. GET_COLOR(1 - time_check / total_time) .. tostring(time_check) .. C_RESET..") "
@@ -136,7 +137,7 @@ local function update_durable_skill_status()
         end
         if base_len ~= nil then
           sk_ttl = tostring(base_len - math.floor(os.difftime(os.time(), SKILL_STATUS_START[sk_name])))
-          sk_color = GET_COLOR(tonumber(sk_ttl) / base_len)
+          sk_color = GET_COLOR(1 - tonumber(sk_ttl) / base_len)
         end
         if sk_color == nil then
           sk_color = GET_COLOR(0)
@@ -233,7 +234,7 @@ local function update_skill_table(table_key, time_diff)
     -- exist_delay = the delay calculated off of existing skill win delay data
     local exist_delay = 4
     if SET_CONTAINS(SKILL_TABLE_WIN, table_key) then
-      exist_delay = ((os.time() - SKILL_TABLE_WIN[table_key])+1)/2
+      exist_delay = ((os.time() - SKILL_TABLE_WIN[table_key]))
     end
     -- recorded_delay = the delay calculated off of existing skill delay data
     local recorded_delay = 4
@@ -242,7 +243,7 @@ local function update_skill_table(table_key, time_diff)
     end
     -- provided_delay = the delay calculated off of the delays command feed
     -- this will always be accurate for the end, but never for the total time
-    local provided_delay = math.floor((time_diff+1)/2)
+    local provided_delay = math.floor((time_diff))
     -- always place the most recent delay in the shim
     SKILL_DELAY_TABLE_SHIM[table_key] = provided_delay
     -- first adjust the delay table if we think it's wrong
