@@ -201,7 +201,8 @@ DELAYS_REMAP = {droid_construct = "droid construct",
                 cureall = "cureall surgery or nanoheal",
                 healing_nanites = "healing nanites",
                 absorb = "absorb/dissipate energy",
-                bmed = "jedi battle meditation",}
+                bmed = "jedi battle meditation",
+                isard_station = "isard station",}
 DELAYS_REMAP2 = {healing_nanites = "healing nanite cooldown",
                 nanoheal = "cureall surgery or nanoheal",
                 cureall = "cureall surgery or nanoheal",}
