@@ -38,6 +38,7 @@ function script_load()
   script.load('~/.config/blightmud/swmud/007_dpr.lua')
   script.load('~/.config/blightmud/swmud/008_room.lua')
   script.load('~/.config/blightmud/swmud/010_utilities.lua')
+  -- script.load('~/.config/blightmud/swmud/011_data_readers.lua')
   if not to_boolean(tostring(core.exec("ls ~/.config/blightmud/private/020_character.lua"):stdout():gsub("^%s*(.-)%s*$", "%1")=="")) then
     script.load('~/.config/blightmud/private/020_character.lua')
   end

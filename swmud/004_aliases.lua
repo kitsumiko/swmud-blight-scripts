@@ -76,6 +76,12 @@ function create_chat_alias(a_in, a_out, decoration)
   alias.add("^" .. a_in .. " (.*)$", function (m)
     if m ~= nil then
       mud.send(a_out .. " " .. decoration .. " " .. m[2], {gag=1,})
+      emote_matches = PROMPT_INFO.emote_regexp:match(a_in)
+      if emote_matches ~= nil then
+        mud.send(a_out .. m[2], {gag=1,})
+      else
+        mud.send(a_out .. " " .. decoration .. " " .. m[2], {gag=1,})
+      end
       PROMPT_INFO.save_raw_command = 0
     end
   end)

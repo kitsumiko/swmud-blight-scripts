@@ -125,3 +125,8 @@ function INDEX_OF(array, value)
     end
     return nil
 end
+
+-- type functions
+function IS_INT(n)
+  return n == math.floor(n)
+end
