@@ -45,6 +45,7 @@ PROMPT_INFO = {
   delays_regexp = regex.new("^delays$"),
   level_regexp = regex.new("([a-zA-Z]* ?[a-zA-Z]* ?[ ]*): ([0-9]*)"),
   char_regexp = regex.new("^You are: ([a-zA-Z]*)"),
+  emote_regexp = regex.new("^([a-zA-Z]*)emote "),
   primary_guild_regexp = regex.new("^Levels:  (.*): ([a-zA-Z]* ?[a-zA-Z]*)\\)"),
   prompt_re = regex.new("^([^ ]*)/([^ ]*) ([^ ]*) ([^ ]*) ([^ ]*)/([^ ]*) ([^ ]*) ([^ ]*)/([^ ]*) ([^ ]* ?[^ ]*? ?[^ ]*?) >"),
   droid_match = regex.new("^(C3|T5|SLR|GNK|B1|RX|G2|MLR|R4P|NR|FX|IF|IG|RA|XLR|BLX|T7|C5|S9E|B2|DD|ALR|MSE|OOM|R8|2\\-1C|HK|FA\\-5)(.*) \\(Yours\\)$"),
@@ -134,6 +135,8 @@ SKILL_STATUS_EST = {}
 SKILL_STATUS_START = {}
 SKILL_STATUS_END = {}
 SKILL_STATUS_LEN = {}
+
+EXP_TABLE = {}
 
 --
 -- store.session_write("char_data", json.encode(char_data))
