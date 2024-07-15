@@ -614,6 +614,7 @@ local function all_input_loop(line)
   PROMPT_INFO.delays_catch = 0
   if PROMPT_INFO.delays_regexp:match(line:line()) ~= nil then
     PROMPT_INFO.delays_catch = 1
+    SKILL_TABLE_WIN = {}
   end
   -- blight.output(C_BYELLOW .. line:line() .. C_RESET)
 
