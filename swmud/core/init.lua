@@ -1,5 +1,7 @@
 -- Core initialization and module loading
 
+blight.output("DEBUG: init.lua - File is executing!")
+
 local function to_boolean(str)
   local bool = false
   if str == "true" then
