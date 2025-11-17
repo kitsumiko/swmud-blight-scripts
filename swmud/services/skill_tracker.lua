@@ -103,6 +103,8 @@ trigger.add("^You have no skills with pending delays\\.", {}, function (m)
       SKILL_TABLE_WIN[k] = nil
     end
   end
+  -- Mark that delays have been checked and there are none
+  DELAYS_CHECKED = true
 end)
 
 -- Delays remap tables

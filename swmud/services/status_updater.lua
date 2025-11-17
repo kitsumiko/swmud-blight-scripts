@@ -122,7 +122,16 @@ function StatusUpdater.update_skill_status()
     end
   end
   if temp_add == "" then
-    temp_add =  C_BYELLOW .. "<delays>" .. C_RESET
+    -- If delays have been checked and there are none, show "None"
+    -- Otherwise show the hint to run delays command
+    if DELAYS_CHECKED then
+      temp_add = C_WHITE .. "None" .. C_RESET
+    else
+      temp_add = C_BYELLOW .. "<delays>" .. C_RESET
+    end
+  else
+    -- If we have delays, reset the checked flag (delays exist now)
+    DELAYS_CHECKED = false
   end
   out_str = out_str .. temp_add
   CHAR_DATA.skill_delays = out_str
