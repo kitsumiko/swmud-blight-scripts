@@ -142,3 +142,9 @@ blight.output("DEBUG: init.lua - Exported script_load, type: " .. type(script_lo
 blight.output("DEBUG: init.lua - _G.script_load type: " .. type(_G.script_load))
 blight.output("DEBUG: init.lua - Global script_load type: " .. type(_G.script_load or script_load))
 
+-- Auto-call script_load now that we're loaded
+-- This ensures script_load runs after init.lua has fully executed
+blight.output("DEBUG: init.lua - Auto-calling script_load()...")
+script_load()
+blight.output("DEBUG: init.lua - script_load() completed")
+
