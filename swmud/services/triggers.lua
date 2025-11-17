@@ -64,16 +64,8 @@ trigger.add("^/reconnect$", {}, function (m)
   RECONNECT()
 end)
 
--- reload scripts trigger
-trigger.add("^/reload$", {}, function (m)
-  blight.output((C_BYELLOW or "") .. "Reloading scripts..." .. (C_RESET or ""))
-  if RELOAD_SCRIPTS then
-    RELOAD_SCRIPTS()
-    blight.output((C_BGREEN or "") .. "Scripts reloaded successfully!" .. (C_RESET or ""))
-  else
-    blight.output((C_BRED or "") .. "ERROR: RELOAD_SCRIPTS function not available!" .. (C_RESET or ""))
-  end
-end)
+-- Note: /reload is handled in prompt_service.lua input_loop, not here
+-- This is because triggers match output, not input commands
 
 -- bsense trigger
 trigger.add("^Your senses tell you that:$", {}, function (m)

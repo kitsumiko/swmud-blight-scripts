@@ -138,8 +138,15 @@ function PromptService.output_loop(line)
 
     -- score catch Information
     if PROMPT_INFO.score_catch ~=0 then
+      if LOG_DEBUG then
+        LOG_DEBUG("PromptService: Processing score line, score_catch=" .. tostring(PROMPT_INFO.score_catch))
+      end
       if ScoreParser and ScoreParser.process then
         ScoreParser.process(line)
+      else
+        if LOG_DEBUG then
+          LOG_DEBUG("PromptService: ScoreParser not available! ScoreParser=" .. tostring(ScoreParser))
+        end
       end
     end
 
@@ -169,12 +176,34 @@ function PromptService.output_loop(line)
 end
 
 function PromptService.input_loop(line)
+  local line_text = line:line()
+  
+  -- Handle /reload command
+  if line_text == "/reload" then
+    blight.output((C_BYELLOW or "") .. "Reloading scripts..." .. (C_RESET or ""))
+    line:gag(1)  -- Prevent sending to MUD
+    if RELOAD_SCRIPTS then
+      -- Use a timer to call RELOAD_SCRIPTS after this function returns
+      -- This prevents issues with modifying state during input processing
+      timer.add(0.1, 1, function()
+        RELOAD_SCRIPTS()
+        blight.output((C_BGREEN or "") .. "Scripts reloaded successfully!" .. (C_RESET or ""))
+      end)
+    else
+      blight.output((C_BRED or "") .. "ERROR: RELOAD_SCRIPTS function not available!" .. (C_RESET or ""))
+    end
+    return line
+  end
+  
   PROMPT_INFO.score_catch = 0
-  if PROMPT_INFO.score_regexp:match(line:line()) ~= nil then
+  if PROMPT_INFO.score_regexp:match(line_text) ~= nil then
     PROMPT_INFO.score_catch = 1
+    if LOG_DEBUG then
+      LOG_DEBUG("PromptService: score command detected, score_catch set to 1")
+    end
   end
   PROMPT_INFO.delays_catch = 0
-  if PROMPT_INFO.delays_regexp:match(line:line()) ~= nil then
+  if PROMPT_INFO.delays_regexp:match(line_text) ~= nil then
     PROMPT_INFO.delays_catch = 1
     SKILL_TABLE_WIN = {}
     -- Reset delays_checked flag when delays command is run
