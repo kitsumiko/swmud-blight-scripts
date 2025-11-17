@@ -10,7 +10,10 @@ function ScoreParser.process(line)
   
   -- Process level lines (e.g., "Jedi         : 30")
   local score_matches = PROMPT_INFO.level_regexp:match_all(line_text)
-  if score_matches ~= nil then
+  if score_matches ~= nil and TABLE_LENGTH(score_matches) > 0 then
+    if LOG_DEBUG then
+      LOG_DEBUG("ScoreParser: Found " .. tostring(TABLE_LENGTH(score_matches)) .. " matches in line: " .. line_text)
+    end
     for s_ind, cur_match in pairs(score_matches) do
       -- cur_match[1] is the guild name, cur_match[2] is the level
       local guild_name = TRIM_STRING(cur_match[1])
@@ -33,18 +36,18 @@ function ScoreParser.process(line)
       if is_valid_guild then
         if level and level > 0 then
           LEVEL_TABLE[guild_name] = level
-          -- if LOG_DEBUG then
-          --   LOG_DEBUG("ScoreParser: Set " .. guild_name .. " = " .. tostring(level))
-          -- end
+          if LOG_DEBUG then
+            LOG_DEBUG("ScoreParser: Set " .. guild_name .. " = " .. tostring(level))
+          end
         else
           if SET_VALUE_CONTAINS(LEVEL_TABLE, guild_name) then
             REMOVE_FROM_SET(LEVEL_TABLE, guild_name)
           end
         end
-      -- else
-      --   if LOG_DEBUG then
-      --     LOG_DEBUG("ScoreParser: Skipping invalid guild: " .. guild_name)
-      --   end
+      else
+        if LOG_DEBUG then
+          LOG_DEBUG("ScoreParser: Skipping invalid guild: " .. guild_name)
+        end
       end
     end
   end
@@ -54,19 +57,19 @@ function ScoreParser.process(line)
   if guild_matches ~= nil then
     -- The regex now captures the guild name directly in group 1
     CHAR_DATA.prime_guild = TRIM_STRING(guild_matches[1])
-    -- if LOG_DEBUG then
-    --   LOG_DEBUG("ScoreParser: Set prime_guild = " .. CHAR_DATA.prime_guild)
-    -- end
+    if LOG_DEBUG then
+      LOG_DEBUG("ScoreParser: Set prime_guild = " .. CHAR_DATA.prime_guild)
+    end
   end
   
-  -- Process character name line (e.g., "You are: Miko the Mistress of Cyberspace")
+  -- Process character name line (e.g., "You are: Miko")
   local char_matches = PROMPT_INFO.char_regexp:match(line_text)
   if char_matches ~= nil then
-    -- The regex now captures the full name in group 1
+    -- The regex now captures just the first name in group 1
     CHAR_DATA.character_name = TRIM_STRING(char_matches[1])
-    -- if LOG_DEBUG then
-    --   LOG_DEBUG("ScoreParser: Set character_name = " .. CHAR_DATA.character_name)
-    -- end
+    if LOG_DEBUG then
+      LOG_DEBUG("ScoreParser: Set character_name = " .. CHAR_DATA.character_name)
+    end
   end
   
   PROMPT_INFO.score_catch = PROMPT_INFO.score_catch + 1
