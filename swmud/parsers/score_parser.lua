@@ -6,12 +6,15 @@ function ScoreParser.process(line)
   local score_matches = PROMPT_INFO.level_regexp:match_all(line:line())
   if score_matches ~= nil then
     for s_ind, cur_match in pairs(score_matches) do
-      if SET(PROMPT_INFO.guilds)[TRIM_STRING(cur_match[2])] then
-        if tonumber(cur_match[3]) > 0 then
-          LEVEL_TABLE[TRIM_STRING(cur_match[2])] = tonumber(cur_match[3])
+      -- cur_match[1] is the guild name, cur_match[2] is the level
+      local guild_name = TRIM_STRING(cur_match[1])
+      if SET(PROMPT_INFO.guilds)[guild_name] then
+        local level = tonumber(cur_match[2])
+        if level and level > 0 then
+          LEVEL_TABLE[guild_name] = level
         else
-          if SET_VALUE_CONTAINS(LEVEL_TABLE, cur_match[2]) then
-            REMOVE_FROM_SET(LEVEL_TABLE, cur_match[2])
+          if SET_VALUE_CONTAINS(LEVEL_TABLE, guild_name) then
+            REMOVE_FROM_SET(LEVEL_TABLE, guild_name)
           end
         end
       end
