@@ -123,8 +123,20 @@ function RELOAD_SCRIPTS()
   blight.output()
 end
 
--- Export for use in entry point
+-- Export for use in entry point (multiple ways to ensure it's available)
+blight.output("DEBUG: init.lua - About to export functions...")
+blight.output("DEBUG: init.lua - script_load type before export: " .. type(script_load))
+
 _G.script_load = script_load
 _G.RELOAD_SCRIPTS = RELOAD_SCRIPTS
 _G.set_status_default = set_status_default
+
+-- Also export directly to global scope (not just _G)
+script_load = script_load
+RELOAD_SCRIPTS = RELOAD_SCRIPTS
+set_status_default = set_status_default
+
+blight.output("DEBUG: init.lua - Exported script_load, type: " .. type(script_load))
+blight.output("DEBUG: init.lua - _G.script_load type: " .. type(_G.script_load))
+blight.output("DEBUG: init.lua - Global script_load type: " .. type(_G.script_load or script_load))
 

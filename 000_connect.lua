@@ -12,9 +12,12 @@ primary_setup()
 
 blight.output("DEBUG: 000_connect.lua - Loading init.lua...")
 -- Load core initialization module which handles all script loading
-script.load('~/.config/blightmud/swmud/core/init.lua')
+local init_module = script.load('~/.config/blightmud/swmud/core/init.lua')
+blight.output("DEBUG: 000_connect.lua - init.lua loaded, module type: " .. type(init_module))
 
-blight.output("DEBUG: 000_connect.lua - init.lua loaded, checking script_load...")
+blight.output("DEBUG: 000_connect.lua - Checking _G.script_load...")
+blight.output("DEBUG: 000_connect.lua - _G.script_load type: " .. type(_G.script_load))
+blight.output("DEBUG: 000_connect.lua - script_load type: " .. type(script_load))
 
 -- Initialize SESSION_INFO (will be set by state module, but set it here for early access)
 SESSION_INFO = SESSION_INFO or {session_start = os.time()}
