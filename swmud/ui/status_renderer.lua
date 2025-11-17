@@ -15,6 +15,8 @@ function StatusRenderer.render()
     if not CHAR_DATA then
       error("CHAR_DATA is nil")
     end
+    -- Ensure STATUS_SEP is available (with fallback)
+    local STATUS_SEP_SAFE = STATUS_SEP or _G.STATUS_SEP or ((C_GREEN or "").." | "..(C_RESET or ""))
     -- Update all status data first
     if update_character_status then
       update_character_status()
@@ -62,16 +64,16 @@ function StatusRenderer.render()
         name_max = math.max(string.len(TARGET_INFO["last_target"]), name_max)
       end
       local name_pad = string.rep(" ", name_max - string.len(CHAR_DATA.character_name))
-      vitals_line = vitals_line .. "C: " .. CHAR_DATA.character_name .. name_pad .. STATUS_SEP
+      vitals_line = vitals_line .. "C: " .. CHAR_DATA.character_name .. name_pad .. STATUS_SEP_SAFE
       PROMPT_INFO.hp_length = string.len(STRIP_COLOR(PROMPT_INFO.hp)) + string.len(STRIP_COLOR(PROMPT_INFO.hp_max))
       local add_space = 0
       if get_add_space then
         add_space = get_add_space('t')
       end
       local hp_string = "H: " .. PROMPT_INFO.hp .. "/" .. PROMPT_INFO.hp_max .. PAD_PERCENT(tonumber(STRIP_COLOR(PROMPT_INFO.hp))/tonumber(STRIP_COLOR(PROMPT_INFO.hp_max)), add_space)
-      vitals_line = vitals_line .. hp_string .. STATUS_SEP
-      vitals_line = vitals_line .. "Dr: " .. PROMPT_INFO.drug .. STATUS_SEP
-      vitals_line = vitals_line .. "W: " .. PROMPT_INFO.wimpy .. STATUS_SEP
+      vitals_line = vitals_line .. hp_string .. STATUS_SEP_SAFE
+      vitals_line = vitals_line .. "Dr: " .. PROMPT_INFO.drug .. STATUS_SEP_SAFE
+      vitals_line = vitals_line .. "W: " .. PROMPT_INFO.wimpy .. STATUS_SEP_SAFE
       
       -- Display exp with exp to next level or exp over
       local exp_display = "X: " .. PROMPT_INFO.exp
@@ -83,11 +85,11 @@ function StatusRenderer.render()
           exp_display = exp_display .. " (" .. exp_info .. ")"
         end
       end
-      vitals_line = vitals_line .. exp_display .. STATUS_SEP
+      vitals_line = vitals_line .. exp_display .. STATUS_SEP_SAFE
       
-      vitals_line = vitals_line .. "$: " .. PROMPT_INFO.credits .. STATUS_SEP
-      vitals_line = vitals_line .. "A: " .. PROMPT_INFO.align_team .. "/" .. PROMPT_INFO.align_jedi .. STATUS_SEP
-      vitals_line = vitals_line .. "Sps: " .. PROMPT_INFO.sp .. "/" .. PROMPT_INFO.sp_max .. STATUS_SEP
+      vitals_line = vitals_line .. "$: " .. PROMPT_INFO.credits .. STATUS_SEP_SAFE
+      vitals_line = vitals_line .. "A: " .. PROMPT_INFO.align_team .. "/" .. PROMPT_INFO.align_jedi .. STATUS_SEP_SAFE
+      vitals_line = vitals_line .. "Sps: " .. PROMPT_INFO.sp .. "/" .. PROMPT_INFO.sp_max .. STATUS_SEP_SAFE
       vitals_line = vitals_line .. "L: " .. CHAR_DATA.character_levels
     else
       vitals_line = vitals_line .. "Character and vitals unknown" .. (C_BYELLOW or "") .. " <reprompt>" .. (C_RESET or "")
@@ -99,7 +101,7 @@ function StatusRenderer.render()
     if lst_cmd == "" then
       lst_cmd = (C_BYELLOW or "") .. "None" .. (C_RESET or "")
     end
-    local rep_cmd_line = (C_RESET or "") .. "Cmd: " .. (C_BYELLOW or "") .. tostring(lst_cmd) .. (C_RESET or "") .. STATUS_SEP
+    local rep_cmd_line = (C_RESET or "") .. "Cmd: " .. (C_BYELLOW or "") .. tostring(lst_cmd) .. (C_RESET or "") .. STATUS_SEP_SAFE
     local rep_cmd_len = string.len(STRIP_COLOR(rep_cmd_line))
     local move_cmd = PROMPT_INFO.move_cmd
     if move_cmd == "" then
@@ -114,7 +116,7 @@ function StatusRenderer.render()
     local durable_skill_line = " "
     local durable_skill_line_len = string.len(STRIP_COLOR(PROMPT_INFO.durable_skill_status))
     if durable_skill_line_len>0 then
-      durable_skill_line = STATUS_SEP .. PROMPT_INFO.durable_skill_status
+      durable_skill_line = STATUS_SEP_SAFE .. PROMPT_INFO.durable_skill_status
     end
     
     local date_line = rep_cmd_line .. move_line .. durable_skill_line .. (C_RESET or "")
@@ -127,9 +129,9 @@ function StatusRenderer.render()
     
     local idle_diff = os.difftime(os.time(), PROMPT_INFO.last_command_time)
     local session_diff = os.difftime(os.time(), SESSION_INFO.session_start)
-    local date_line_end = "Idle: " .. os.date("!%H:%M:%S", idle_diff) .. STATUS_SEP
-    date_line_end = date_line_end .. "S: " .. os.date("!%H:%M:%S", session_diff) .. STATUS_SEP
-    date_line_end = date_line_end .. "R: " .. reboot_diff .. STATUS_SEP
+    local date_line_end = "Idle: " .. os.date("!%H:%M:%S", idle_diff) .. STATUS_SEP_SAFE
+    date_line_end = date_line_end .. "S: " .. os.date("!%H:%M:%S", session_diff) .. STATUS_SEP_SAFE
+    date_line_end = date_line_end .. "R: " .. reboot_diff .. STATUS_SEP_SAFE
     date_line_end = date_line_end .. "T: " .. os.date("%c") .. (C_RESET or "")
 
     local date_line_end_len = string.len(STRIP_COLOR(date_line_end))
@@ -137,8 +139,8 @@ function StatusRenderer.render()
     date_line = date_line .. (C_GREEN or "") .. string.rep("-", date_start) .. (C_RESET or "") .. "  " .. date_line_end
 
     -- Status + Char Data + exp etc...
-    local info_line = TARGET_INFO.status_line .. STATUS_SEP
-    info_line = info_line .. DPR_INFO.status_line .. STATUS_SEP
+    local info_line = TARGET_INFO.status_line .. STATUS_SEP_SAFE
+    info_line = info_line .. DPR_INFO.status_line .. STATUS_SEP_SAFE
     info_line = info_line .. CHAR_DATA.skill_delays
 
     -- Line Draw

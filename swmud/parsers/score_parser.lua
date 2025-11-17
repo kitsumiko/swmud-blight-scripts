@@ -15,9 +15,9 @@ function ScoreParser.process(line)
       LOG_DEBUG("ScoreParser: Found " .. tostring(TABLE_LENGTH(score_matches)) .. " matches in line: " .. line_text)
     end
     for s_ind, cur_match in pairs(score_matches) do
-      -- cur_match[1] is the guild name, cur_match[2] is the level
-      local guild_name = TRIM_STRING(cur_match[1])
-      local level = tonumber(cur_match[2])
+      -- cur_match[1] is the full match, cur_match[2] is the guild name, cur_match[3] is the level
+      local guild_name = TRIM_STRING(cur_match[2])
+      local level = tonumber(cur_match[3])
       
       -- if LOG_DEBUG then
       --   LOG_DEBUG("ScoreParser: Matched guild '" .. guild_name .. "' with level '" .. tostring(cur_match[2]) .. "'")
@@ -55,8 +55,8 @@ function ScoreParser.process(line)
   -- Process primary guild line (e.g., "Levels:  (Primary Guild: Slicer)")
   local guild_matches = PROMPT_INFO.primary_guild_regexp:match(line_text)
   if guild_matches ~= nil then
-    -- The regex now captures the guild name directly in group 1
-    CHAR_DATA.prime_guild = TRIM_STRING(guild_matches[1])
+    -- In Blightmud, match[1] is the full match, match[2] is the first capture group
+    CHAR_DATA.prime_guild = TRIM_STRING(guild_matches[2])
     if LOG_DEBUG then
       LOG_DEBUG("ScoreParser: Set prime_guild = " .. CHAR_DATA.prime_guild)
     end
@@ -65,8 +65,8 @@ function ScoreParser.process(line)
   -- Process character name line (e.g., "You are: Miko")
   local char_matches = PROMPT_INFO.char_regexp:match(line_text)
   if char_matches ~= nil then
-    -- The regex now captures just the first name in group 1
-    CHAR_DATA.character_name = TRIM_STRING(char_matches[1])
+    -- In Blightmud, match[1] is the full match, match[2] is the first capture group
+    CHAR_DATA.character_name = TRIM_STRING(char_matches[2])
     if LOG_DEBUG then
       LOG_DEBUG("ScoreParser: Set character_name = " .. CHAR_DATA.character_name)
     end
