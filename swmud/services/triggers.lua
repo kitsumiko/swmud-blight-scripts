@@ -64,6 +64,17 @@ trigger.add("^/reconnect$", {}, function (m)
   RECONNECT()
 end)
 
+-- reload scripts trigger
+trigger.add("^/reload$", {}, function (m)
+  blight.output((C_BYELLOW or "") .. "Reloading scripts..." .. (C_RESET or ""))
+  if RELOAD_SCRIPTS then
+    RELOAD_SCRIPTS()
+    blight.output((C_BGREEN or "") .. "Scripts reloaded successfully!" .. (C_RESET or ""))
+  else
+    blight.output((C_BRED or "") .. "ERROR: RELOAD_SCRIPTS function not available!" .. (C_RESET or ""))
+  end
+end)
+
 -- bsense trigger
 trigger.add("^Your senses tell you that:$", {}, function (m)
   PROMPT_INFO.bsense_catch = 1
