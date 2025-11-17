@@ -1,105 +1,7 @@
--- general functions
-local function create_skill(sk_name, regex_win, regex_fail, sk_delay_win, sk_delay_fail, check_last_command, regex_miss)
-  SKILL_TABLE_WIN[sk_name] = nil
-  SKILL_TABLE_FAIL[sk_name] = nil
-  if sk_delay_win==nil then
-    sk_delay_win = 4
-  end
-  if sk_delay_fail==nil then
-    sk_delay_fail = 4
-  end
-  SKILL_DELAY_TABLE_WIN[sk_name] = tonumber(sk_delay_win)
-  SKILL_DELAY_TABLE_FAIL[sk_name] = tonumber(sk_delay_fail)
-  if regex_win ~= nil then
-    trigger.add(regex_win, {gag=1}, function (m, line)
-      local exec_trigger = 1
-      if check_last_command ~= nil then
-        if PROMPT_INFO.last_repeat_command ~= sk_name then
-          exec_trigger = 0
-        end
-      end
-      if exec_trigger==1 then
-        if not SET_CONTAINS(SKILL_STATUS_TABLE, sk_name) then
-          blight.output("("..C_BGREEN.."SUCCESS"..C_RESET.."): "..sk_name.." - "..line:raw())
-        end
-        SKILL_TABLE_WIN[sk_name] = os.time()
-      end
-    end)
-  end
-  if regex_fail ~= nil then
-    trigger.add(regex_fail, {gag=1}, function (m, line)
-      local exec_trigger = 1
-      if check_last_command ~= nil then
-        if PROMPT_INFO.last_repeat_command ~= sk_name then
-          exec_trigger = 0
-        end
-      end
-      if exec_trigger==1 then
-        blight.output("("..C_BRED.."FAILURE"..C_RESET.."): "..sk_name.." - "..line:raw())
-        SKILL_TABLE_FAIL[sk_name] = os.time()
-      end
-    end)
-  end
-  if regex_miss ~= nil then
-    trigger.add(regex_miss, {gag=1}, function(m, line)
-      local exec_trigger = 1
-      if check_last_command ~= nil then
-        if PROMPT_INFO.last_repeat_command ~= sk_name then
-          exec_trigger = 0
-        end
-      end
-      if exec_trigger==1 then
-        blight.output("("..C_BYELLOW.."MISS"..C_RESET.."): "..sk_name.." - "..line:raw())
-      end
-    end)
-  end
-end
+-- Skill definitions
+-- This file defines all the skills that are tracked
 
--- status skills (bmed, block retal etc...)
-local function create_status_skill(sk_name, regex_win, regex_fail, regex_revert, sk_ttl)
-  SKILL_STATUS_TABLE[sk_name] = 0
-  if sk_ttl ~= nil then
-    SKILL_STATUS_LEN[sk_name] = tonumber(sk_ttl)
-  end
-  if regex_win ~= nil then
-    trigger.add(regex_win, {gag=1}, function (m, line)
-      blight.output("("..C_BGREEN.."START"..C_RESET.."): "..sk_name.." - "..line:raw())
-      SKILL_STATUS_START[sk_name] = os.time()
-      SKILL_STATUS_TABLE[sk_name] = 1
-    end)
-  end
-  if regex_revert ~= nil then
-    trigger.add(regex_revert, {gag=1}, function (m, line)
-      blight.output("("..C_BRED.."END"..C_RESET.."): "..sk_name.." - "..line:raw())
-      SKILL_STATUS_END[sk_name] = os.time()
-      SKILL_STATUS_TABLE[sk_name] = 0
-      if SKILL_STATUS_START[sk_name] ~= nil then
-        SKILL_STATUS_EST[sk_name] = math.floor(os.difftime(SKILL_STATUS_END[sk_name], SKILL_STATUS_START[sk_name]))
-      end
-    end)
-  end
-  if regex_fail ~= nil then
-    SKILL_TABLE_FAIL[sk_name] = nil
-    SKILL_DELAY_TABLE_FAIL[sk_name] = 4
-    trigger.add(regex_fail, {gag=1}, function (m, line)
-      if not SET_CONTAINS(SKILL_DELAY_TABLE_FAIL, sk_name) then
-        blight.output("("..C_BRED.."FAILURE"..C_RESET.."): "..sk_name.." - "..line:raw())
-      end
-      SKILL_TABLE_FAIL[sk_name] = os.time()
-    end)
-  end
-
-end
-
--- delays reset
-trigger.add("^You have no skills with pending delays\\.", {}, function (m)
-  if TABLE_LENGTH(SKILL_TABLE_WIN)>0 then
-    for k,v in pairs(SKILL_TABLE_WIN) do
-      SKILL_TABLE_WIN[k] = nil
-    end
-  end
-end)
-
+-- Status skills (bmed, block retal etc...)
 create_status_skill("block", "^You take up a defensive stance and prepare to block shots\\.", nil, "^You stop blocking shots\\.", 12)
 create_status_skill("retal", "^You take up a defensive stance and prepare to retaliate shots\\.", nil, "^You stop retaliating shots\\.", 12)
 create_status_skill("bmed", "^You feel your control over the Force increase\\.", "^Your concentration is broken and you can no longer feel the Force\\.", "^You feel your control of the Force decrease a little\\.", 60)
@@ -110,6 +12,7 @@ create_status_skill("nanoheal", "^You run the parts through a compartment on you
 create_status_skill("nanoheal", nil, nil, "^The nanobots run out of power and you feel your body return to normal\\.")
 create_status_skill("healing_nanites", "^You thrust the nanoinjector into your thigh and release a swarm of nanites into your bloodstream\\.", nil, "^The nanites within your bloodstream give out and dissolve away\\.", 46)
 
+-- Regular skills
 create_skill("throw", "^You (throw .*) from .*", "^You (fail to throw) ")
 create_skill("lift", "^You (lift .+) from ", "^You (fail to lift .+)\\.")
 create_skill("lift", nil, "The little droid (anchors itself firmly) into the ground")
@@ -121,7 +24,6 @@ create_skill("repair", "^You (repair) .*\\.", "^You (fail to repair) .*\\.", 2, 
 create_skill("anger", "^The (pain of your injuries seems to vanish) as you ", "^You (fail to focus) on your anger\\.", 2, nil)
 create_skill("disable", "^You (search for your enemy.s weakest point) and take a calculated swing", "^You (take a wild swing) at .*, but miss completely")
 create_skill("absorb", "^You (concentrate on absorbing) energy directed at you\\." , "^You (fail to achieve) the proper concentration required\\.", 150, nil)
--- create_skill("pres", "^You (remove the drugs|remove some of the drugs|purge your body) ", "^Nothing happens\\.", 1)
 create_skill("scloak", "^You (draw the Dark Side) around you to hide your presence\\.", "^You (lose control) of the Force and fail\\.", 2, nil, 1)
 create_skill("subdue", "^You (deftly beat .+ over the head). Before ", "^You (fail to subdue|try to subdue) .+, but m")
 create_skill("subdue", nil, "^(.* still looks quite lively). Maybe .* needs more 'persuasion'?")
@@ -194,15 +96,3 @@ create_skill("presist", "^You remove some of the drugs from your system\\.", "^Y
 create_skill("hack_bank", "^You have managed to funnel.*", nil, 86400, nil)
 create_skill("isard_station", "^The Imperial officer appears on the screen again. He listens to your report with worry etched across his face\\.", nil, 79200)
 
--- delays catch
-DELAYS_REMAP = {droid_construct = "droid construct",
-                hack_bank = "hack bank",
-                dmodify = "droid modification",
-                cureall = "cureall surgery or nanoheal",
-                healing_nanites = "healing nanites",
-                absorb = "absorb/dissipate energy",
-                bmed = "jedi battle meditation",
-                isard_station = "isard station",}
-DELAYS_REMAP2 = {healing_nanites = "healing nanite cooldown",
-                nanoheal = "cureall surgery or nanoheal",
-                cureall = "cureall surgery or nanoheal",}
