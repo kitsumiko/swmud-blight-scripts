@@ -2,6 +2,9 @@
 
 local ScoreParser = {}
 
+-- Export to global scope immediately
+_G.ScoreParser = ScoreParser
+
 function ScoreParser.process(line)
   local line_text = line:line()
   
@@ -72,7 +75,13 @@ function ScoreParser.process(line)
   end
 end
 
--- Export as global for script.load() compatibility
+-- Export as global for script.load() compatibility (multiple ways to ensure it's available)
 ScoreParser = ScoreParser
+_G.ScoreParser = ScoreParser
+
+if LOG_DEBUG then
+  LOG_DEBUG("ScoreParser: Module loaded and exported")
+end
+
 return ScoreParser
 
