@@ -5,6 +5,16 @@ local StatusRenderer = {}
 function StatusRenderer.render()
   -- Error handling wrapper
   local success, err = pcall(function()
+    -- Debug: Check if we have required globals
+    if not PROMPT_INFO then
+      error("PROMPT_INFO is nil")
+    end
+    if not SETUP_STATE then
+      error("SETUP_STATE is nil")
+    end
+    if not CHAR_DATA then
+      error("CHAR_DATA is nil")
+    end
     -- Update all status data first
     if update_character_status then
       update_character_status()

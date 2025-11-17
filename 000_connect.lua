@@ -10,8 +10,11 @@ end
 -- Initialize connection
 primary_setup()
 
+blight.output("DEBUG: 000_connect.lua - Loading init.lua...")
 -- Load core initialization module which handles all script loading
 script.load('~/.config/blightmud/swmud/core/init.lua')
+
+blight.output("DEBUG: 000_connect.lua - init.lua loaded, checking script_load...")
 
 -- Initialize SESSION_INFO (will be set by state module, but set it here for early access)
 SESSION_INFO = SESSION_INFO or {session_start = os.time()}
@@ -28,6 +31,11 @@ function RECONNECT()
 end
 
 -- Call script_load from init module
+blight.output("DEBUG: 000_connect.lua - script_load type: " .. type(script_load))
 if script_load then
+  blight.output("DEBUG: 000_connect.lua - Calling script_load()...")
   script_load()
+  blight.output("DEBUG: 000_connect.lua - script_load() completed")
+else
+  blight.output("DEBUG: 000_connect.lua - ERROR: script_load is nil!")
 end
