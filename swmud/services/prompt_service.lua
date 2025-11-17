@@ -141,19 +141,23 @@ function PromptService.output_loop(line)
       if LOG_DEBUG then
         LOG_DEBUG("PromptService: Processing score line, score_catch=" .. tostring(PROMPT_INFO.score_catch))
       end
-      if ScoreParser and ScoreParser.process then
-        ScoreParser.process(line)
+      -- Try multiple ways to get ScoreParser (handle deferred loading)
+      local parser = ScoreParser or _G.ScoreParser
+      if parser and parser.process then
+        parser.process(line)
       else
         if LOG_DEBUG then
-          LOG_DEBUG("PromptService: ScoreParser not available! ScoreParser=" .. tostring(ScoreParser))
+          LOG_DEBUG("PromptService: ScoreParser not available! ScoreParser=" .. tostring(ScoreParser) .. ", _G.ScoreParser=" .. tostring(_G.ScoreParser))
         end
       end
     end
 
     -- delays catch information
     if PROMPT_INFO.delays_catch ~= 0 then
-      if DelaysParser and DelaysParser.process then
-        DelaysParser.process(line)
+      -- Try multiple ways to get DelaysParser (handle deferred loading)
+      local parser = DelaysParser or _G.DelaysParser
+      if parser and parser.process then
+        parser.process(line)
       end
     end
 

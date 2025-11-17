@@ -2,6 +2,9 @@
 
 local DelaysParser = {}
 
+-- Export to global scope immediately
+_G.DelaysParser = DelaysParser
+
 local function get_time_diff(delay_match, inc_line)
   local time_diff = 0
   -- delay_match structure: [1] = full match, [2] = skill name, [3+] = time values
@@ -152,7 +155,9 @@ function DelaysParser.process(line)
   end
 end
 
--- Export as global for script.load() compatibility
+-- Export as global for script.load() compatibility (multiple ways to ensure it's available)
 DelaysParser = DelaysParser
+_G.DelaysParser = DelaysParser
+
 return DelaysParser
 
