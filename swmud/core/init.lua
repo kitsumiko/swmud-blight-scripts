@@ -16,9 +16,6 @@ end
 function script_load()
   -- Load all modules in order
   blight.output()
-  blight.output(C_BYELLOW .. "SWmud Scripts Version: " .. C_RESET .. C_BWHITE .. tostring(core.exec("cat ~/.config/blightmud/100_version.txt"):stdout():gsub("^%s*(.-)%s*$", "%1")) .. C_RESET)
-  blight.output(C_BYELLOW .. "Created by: Miko (kishimiko@gmail.com)" .. C_RESET)
-  blight.output()
   
   -- Load core modules first
   script.load('~/.config/blightmud/swmud/core/module_loader.lua')
@@ -30,14 +27,24 @@ function script_load()
   script.load('~/.config/blightmud/swmud/utils/math_utils.lua')
   script.load('~/.config/blightmud/swmud/utils/time_utils.lua')
   
-  -- Load UI
+  -- Load UI (colors must be loaded before using color constants)
   script.load('~/.config/blightmud/swmud/ui/colors.lua')
+  
+  -- Now safe to use color constants - display version info
+  local version_text = "Unknown"
+  local version_result = core.exec("cat ~/.config/blightmud/100_version.txt")
+  if version_result and version_result:stdout() then
+    version_text = tostring(version_result:stdout():gsub("^%s*(.-)%s*$", "%1"))
+  end
+  blight.output((C_BYELLOW or "") .. "SWmud Scripts Version: " .. (C_RESET or "") .. (C_BWHITE or "") .. version_text .. (C_RESET or ""))
+  blight.output((C_BYELLOW or "") .. "Created by: Miko (kishimiko@gmail.com)" .. (C_RESET or ""))
+  blight.output()
   
   -- Set STATUS_SEP after colors are loaded
   if CONFIG then
-    CONFIG.STATUS_SEP = C_GREEN.." | "..C_RESET
+    CONFIG.STATUS_SEP = (C_GREEN or "").." | "..(C_RESET or "")
   end
-  STATUS_SEP = STATUS_SEP or (C_GREEN.." | "..C_RESET)
+  STATUS_SEP = STATUS_SEP or ((C_GREEN or "").." | "..(C_RESET or ""))
   
   -- Load state (must be after utilities and colors)
   script.load('~/.config/blightmud/swmud/core/state.lua')
