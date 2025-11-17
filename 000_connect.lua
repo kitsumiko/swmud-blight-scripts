@@ -12,6 +12,7 @@ primary_setup()
 
 -- Load core initialization module which handles all script loading
 -- Note: script.load() is deferred, so init.lua will call script_load() itself when it executes
+-- Note: LOG_DEBUG not available yet, use blight.output directly
 blight.output("DEBUG: 000_connect.lua - Loading init.lua (it will auto-call script_load)...")
 script.load('~/.config/blightmud/swmud/core/init.lua')
 
