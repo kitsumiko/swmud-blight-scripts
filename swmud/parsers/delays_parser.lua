@@ -122,9 +122,11 @@ local function update_skill_table(table_key, time_diff)
 end
 
 function DelaysParser.process(line)
+  local found_delay = false
   for k,v in pairs(DELAYS_HOOKS) do
     local delay_match = v:match(line:line())
     if delay_match ~= nil then
+      found_delay = true
       local table_key = delay_match[2]
       local time_diff = get_time_diff(delay_match, line:line())
       if SET_VALUE_CONTAINS(DELAYS_REMAP, delay_match[2]) then
@@ -139,6 +141,10 @@ function DelaysParser.process(line)
         update_skill_table(table_key, time_diff)
       end
     end
+  end
+  -- If we found any delays, reset the checked flag (delays exist)
+  if found_delay and DELAYS_CHECKED then
+    DELAYS_CHECKED = false
   end
   PROMPT_INFO.delays_catch = PROMPT_INFO.delays_catch + 1
   if PROMPT_INFO.delays_catch >= 10 then
