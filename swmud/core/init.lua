@@ -1,11 +1,11 @@
 -- Core initialization and module loading
 
 -- Use LOG_DEBUG if available, otherwise fallback to blight.output
-if LOG_DEBUG then
-  LOG_DEBUG("init.lua - File is executing!")
-else
-  blight.output("DEBUG: init.lua - File is executing!")
-end
+-- if LOG_DEBUG then
+--   LOG_DEBUG("init.lua - File is executing!")
+-- else
+--   blight.output("DEBUG: init.lua - File is executing!")
+-- end
 
 local function to_boolean(str)
   local bool = false
@@ -108,38 +108,38 @@ function script_load()
   -- Initial status display
   -- Note: status_draw is defined by status_renderer.lua which was just loaded
   -- Since script.load() is deferred, we need to wait a moment or check if it's available
-  if LOG_DEBUG then
-    LOG_DEBUG("Checking status_draw...")
-  else
-    blight.output("DEBUG: Checking status_draw...")
-  end
+  -- if LOG_DEBUG then
+  --   LOG_DEBUG("Checking status_draw...")
+  -- else
+  --   blight.output("DEBUG: Checking status_draw...")
+  -- end
   
   -- Try calling status_draw - it should be available since status_renderer.lua was loaded
   -- If it's not, the timer in prompt_service.lua will handle it
   if status_draw then
-    if LOG_DEBUG then
-      LOG_DEBUG("status_draw exists, calling it...")
-    else
-      blight.output("DEBUG: status_draw exists, calling it...")
-    end
+    -- if LOG_DEBUG then
+    --   LOG_DEBUG("status_draw exists, calling it...")
+    -- else
+    --   blight.output("DEBUG: status_draw exists, calling it...")
+    -- end
     status_draw()
-    if LOG_DEBUG then
-      LOG_DEBUG("status_draw called")
-    else
-      blight.output("DEBUG: status_draw called")
-    end
+    -- if LOG_DEBUG then
+    --   LOG_DEBUG("status_draw called")
+    -- else
+    --   blight.output("DEBUG: status_draw called")
+    -- end
   else
-    if LOG_DEBUG then
-      LOG_DEBUG("WARNING - status_draw is nil (may be deferred, timer will handle it)")
-    else
-      blight.output("DEBUG: WARNING - status_draw is nil (may be deferred, timer will handle it)")
-    end
+    -- if LOG_DEBUG then
+    --   LOG_DEBUG("WARNING - status_draw is nil (may be deferred, timer will handle it)")
+    -- else
+    --   blight.output("DEBUG: WARNING - status_draw is nil (may be deferred, timer will handle it)")
+    -- end
   end
-  if LOG_DEBUG then
-    LOG_DEBUG("script_load() completed")
-  else
-    blight.output("DEBUG: script_load() completed")
-  end
+  -- if LOG_DEBUG then
+  --   LOG_DEBUG("script_load() completed")
+  -- else
+  --   blight.output("DEBUG: script_load() completed")
+  -- end
 end
 
 function set_status_default()
@@ -157,13 +157,13 @@ function RELOAD_SCRIPTS()
 end
 
 -- Export for use in entry point (multiple ways to ensure it's available)
-if LOG_DEBUG then
-  LOG_DEBUG("init.lua - About to export functions...")
-  LOG_DEBUG("init.lua - script_load type before export: " .. type(script_load))
-else
-  blight.output("DEBUG: init.lua - About to export functions...")
-  blight.output("DEBUG: init.lua - script_load type before export: " .. type(script_load))
-end
+-- if LOG_DEBUG then
+--   LOG_DEBUG("init.lua - About to export functions...")
+--   LOG_DEBUG("init.lua - script_load type before export: " .. type(script_load))
+-- else
+--   blight.output("DEBUG: init.lua - About to export functions...")
+--   blight.output("DEBUG: init.lua - script_load type before export: " .. type(script_load))
+-- end
 
 _G.script_load = script_load
 _G.RELOAD_SCRIPTS = RELOAD_SCRIPTS
@@ -174,27 +174,27 @@ script_load = script_load
 RELOAD_SCRIPTS = RELOAD_SCRIPTS
 set_status_default = set_status_default
 
-if LOG_DEBUG then
-  LOG_DEBUG("init.lua - Exported script_load, type: " .. type(script_load))
-  LOG_DEBUG("init.lua - _G.script_load type: " .. type(_G.script_load))
-  LOG_DEBUG("init.lua - Global script_load type: " .. type(_G.script_load or script_load))
-else
-  blight.output("DEBUG: init.lua - Exported script_load, type: " .. type(script_load))
-  blight.output("DEBUG: init.lua - _G.script_load type: " .. type(_G.script_load))
-  blight.output("DEBUG: init.lua - Global script_load type: " .. type(_G.script_load or script_load))
-end
+-- if LOG_DEBUG then
+--   LOG_DEBUG("init.lua - Exported script_load, type: " .. type(script_load))
+--   LOG_DEBUG("init.lua - _G.script_load type: " .. type(_G.script_load))
+--   LOG_DEBUG("init.lua - Global script_load type: " .. type(_G.script_load or script_load))
+-- else
+--   blight.output("DEBUG: init.lua - Exported script_load, type: " .. type(script_load))
+--   blight.output("DEBUG: init.lua - _G.script_load type: " .. type(_G.script_load))
+--   blight.output("DEBUG: init.lua - Global script_load type: " .. type(_G.script_load or script_load))
+-- end
 
 -- Auto-call script_load now that we're loaded
 -- This ensures script_load runs after init.lua has fully executed
-if LOG_DEBUG then
-  LOG_DEBUG("init.lua - Auto-calling script_load()...")
-else
-  blight.output("DEBUG: init.lua - Auto-calling script_load()...")
-end
+-- if LOG_DEBUG then
+--   LOG_DEBUG("init.lua - Auto-calling script_load()...")
+-- else
+--   blight.output("DEBUG: init.lua - Auto-calling script_load()...")
+-- end
 script_load()
-if LOG_DEBUG then
-  LOG_DEBUG("init.lua - script_load() completed")
-else
-  blight.output("DEBUG: init.lua - script_load() completed")
-end
+-- if LOG_DEBUG then
+--   LOG_DEBUG("init.lua - script_load() completed")
+-- else
+--   blight.output("DEBUG: init.lua - script_load() completed")
+-- end
 
