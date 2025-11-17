@@ -177,6 +177,9 @@ function PromptService.input_loop(line)
   if PROMPT_INFO.delays_regexp:match(line:line()) ~= nil then
     PROMPT_INFO.delays_catch = 1
     SKILL_TABLE_WIN = {}
+    -- Reset delays_checked flag when delays command is run
+    -- It will be set to true if "no skills" message is received
+    DELAYS_CHECKED = false
   end
 
   -- reset all prompt caches on new line inputs
