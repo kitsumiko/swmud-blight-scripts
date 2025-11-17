@@ -270,38 +270,77 @@ end
 PromptService = PromptService
 
 -- Set up listeners
-blight.output("DEBUG: Setting up prompt service listeners...")
+if LOG_DEBUG then
+  LOG_DEBUG("Setting up prompt service listeners...")
+else
+  blight.output("DEBUG: Setting up prompt service listeners...")
+end
+
 if mud and mud.add_output_listener then
   mud.add_output_listener(PromptService.output_loop)
-  blight.output("DEBUG: Output listener added")
+  if LOG_DEBUG then
+    LOG_DEBUG("Output listener added")
+  else
+    blight.output("DEBUG: Output listener added")
+  end
 else
-  blight.output("Warning: mud.add_output_listener not available")
+  local msg = "Warning: mud.add_output_listener not available"
+  if LOG_DEBUG then
+    LOG_DEBUG(msg)
+  else
+    blight.output(msg)
+  end
 end
 
 if mud and mud.add_input_listener then
   mud.add_input_listener(PromptService.input_loop)
-  blight.output("DEBUG: Input listener added")
+  if LOG_DEBUG then
+    LOG_DEBUG("Input listener added")
+  else
+    blight.output("DEBUG: Input listener added")
+  end
 else
-  blight.output("Warning: mud.add_input_listener not available")
+  local msg = "Warning: mud.add_input_listener not available"
+  if LOG_DEBUG then
+    LOG_DEBUG(msg)
+  else
+    blight.output(msg)
+  end
 end
 
 -- Add timer to update every second
 if timer and timer.add and status_draw then
   timer.add(1, 0, status_draw)
-  blight.output("DEBUG: Timer added for status_draw")
-else
-  blight.output("Warning: timer.add or status_draw not available")
-  if not timer then
-    blight.output("  - timer is nil")
+  if LOG_DEBUG then
+    LOG_DEBUG("Timer added for status_draw")
+  else
+    blight.output("DEBUG: Timer added for status_draw")
   end
-  if not timer.add then
-    blight.output("  - timer.add is nil")
+else
+  local msg = "Warning: timer.add or status_draw not available"
+  if LOG_DEBUG then
+    LOG_DEBUG(msg)
+  else
+    blight.output(msg)
+  end
+  if not timer then
+    local msg2 = "  - timer is nil"
+    if LOG_DEBUG then LOG_DEBUG(msg2) else blight.output(msg2) end
+  end
+  if timer and not timer.add then
+    local msg2 = "  - timer.add is nil"
+    if LOG_DEBUG then LOG_DEBUG(msg2) else blight.output(msg2) end
   end
   if not status_draw then
-    blight.output("  - status_draw is nil")
+    local msg2 = "  - status_draw is nil"
+    if LOG_DEBUG then LOG_DEBUG(msg2) else blight.output(msg2) end
   end
 end
 
-blight.output("DEBUG: Prompt service setup complete")
+if LOG_DEBUG then
+  LOG_DEBUG("Prompt service setup complete")
+else
+  blight.output("DEBUG: Prompt service setup complete")
+end
 return PromptService
 
