@@ -1,16 +1,19 @@
--- simplification functions
-function create_alias(a_in, a_out)
+-- Alias creation factory functions
+
+local AliasFactory = {}
+
+function AliasFactory.create(a_in, a_out)
   alias.add(a_in, function (m)
     GLOBAL_SEND(a_out)
-    end)
+  end)
 end
 
-function create_standard_alias(a_in, a_out)
-  create_alias("^" .. a_in .. "$", a_out)
+function AliasFactory.create_standard(a_in, a_out)
+  AliasFactory.create("^" .. a_in .. "$", a_out)
 end
 
-function create_sub_alias(a_in, a_out)
-  create_standard_alias(a_in, a_out)
+function AliasFactory.create_sub(a_in, a_out)
+  AliasFactory.create_standard(a_in, a_out)
   alias.add("^" .. a_in .. " (.*)$", function (m)
     if m ~= nil then
       GLOBAL_SEND(a_out .. " "..m[2])
@@ -18,7 +21,7 @@ function create_sub_alias(a_in, a_out)
   end)
 end
 
-function create_nested_alias(a_in, a_out, a_last)
+function AliasFactory.create_nested(a_in, a_out, a_last)
   alias.add("^" .. a_in .. " (.*)$", function (m)
     if m ~= nil then
       GLOBAL_SEND(a_out .. " "..m[2] .. a_last)
@@ -26,7 +29,7 @@ function create_nested_alias(a_in, a_out, a_last)
   end)
 end
 
-function create_target_alias(a_in, a_out)
+function AliasFactory.create_target(a_in, a_out)
   alias.add("^" .. a_in .. " (.*)$", function (m)
     if m ~= nil and m[2]~= "" then
       GLOBAL_SEND(a_out .. " " .. m[2])
@@ -41,8 +44,7 @@ function create_target_alias(a_in, a_out)
   end)
 end
 
--- move aliases (sneak, ride, etc...)
-function create_move_alias(a_in)
+function AliasFactory.create_move(a_in)
   alias.add("^" .. a_in .. "$", function (m)
     if PROMPT_INFO.move_cmd == "" then
       GLOBAL_SEND(a_in, true)
@@ -52,27 +54,7 @@ function create_move_alias(a_in)
   end)
 end
 
-alias.add("^set_move(.*)$", function (m)
-  if m ~= nil then
-    PROMPT_INFO.move_cmd = TRIM_STRING(tostring(m[2]))
-    if m[2] == "" then
-      blight.output(C_BYELLOW .. "Removed move prepend.")
-    else
-      blight.output(C_BYELLOW .. "Set move prepend: " .. PROMPT_INFO.move_cmd .. " (example:" .. PROMPT_INFO.move_cmd .. " south)")
-    end
-  else
-    PROMPT_INFO.move_cmd = ""
-    blight.output(C_BYELLOW .. "Removed move prepend.")
-  end
-end)
-
-for k,v in pairs(PROMPT_INFO.move_commands) do
-  create_move_alias(v)
-end
-
-create_alias("^reprompt$", "prompt 2 5 6 9 12 4 11")
-
-function create_chat_alias(a_in, a_out, decoration)
+function AliasFactory.create_chat(a_in, a_out, decoration)
   alias.add("^" .. a_in .. " (.*)$", function (m)
     if m ~= nil then
       mud.send(a_out .. " " .. decoration .. " " .. m[2], {gag=1,})
@@ -87,7 +69,7 @@ function create_chat_alias(a_in, a_out, decoration)
   end)
 end
 
-function create_tell_alias(a_in, a_out, decoration)
+function AliasFactory.create_tell(a_in, a_out, decoration)
   alias.add("^" .. a_in .. " ([a-zA-Z,]*) (.*)$", function (m)
     if m ~= nil then
       mud.send(a_out .. " " .. m[2] .. " " .. decoration .. " " .. m[3], {gag=1,})
@@ -95,3 +77,16 @@ function create_tell_alias(a_in, a_out, decoration)
     end
   end)
 end
+
+-- Export as globals for backward compatibility
+create_alias = AliasFactory.create
+create_standard_alias = AliasFactory.create_standard
+create_sub_alias = AliasFactory.create_sub
+create_nested_alias = AliasFactory.create_nested
+create_target_alias = AliasFactory.create_target
+create_move_alias = AliasFactory.create_move
+create_chat_alias = AliasFactory.create_chat
+create_tell_alias = AliasFactory.create_tell
+
+return AliasFactory
+
