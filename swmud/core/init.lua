@@ -28,6 +28,7 @@ function script_load()
   script.load('~/.config/blightmud/swmud/utils/string_utils.lua')
   script.load('~/.config/blightmud/swmud/utils/math_utils.lua')
   script.load('~/.config/blightmud/swmud/utils/time_utils.lua')
+  script.load('~/.config/blightmud/swmud/utils/log_utils.lua')
   
   -- Load UI (colors must be loaded before using color constants)
   script.load('~/.config/blightmud/swmud/ui/colors.lua')
@@ -100,13 +101,18 @@ function script_load()
   end
   
   -- Initial status display
+  -- Note: status_draw is defined by status_renderer.lua which was just loaded
+  -- Since script.load() is deferred, we need to wait a moment or check if it's available
   blight.output("DEBUG: Checking status_draw...")
+  
+  -- Try calling status_draw - it should be available since status_renderer.lua was loaded
+  -- If it's not, the timer in prompt_service.lua will handle it
   if status_draw then
     blight.output("DEBUG: status_draw exists, calling it...")
     status_draw()
     blight.output("DEBUG: status_draw called")
   else
-    blight.output("DEBUG: ERROR - status_draw is nil!")
+    blight.output("DEBUG: WARNING - status_draw is nil (may be deferred, timer will handle it)")
   end
   blight.output("DEBUG: script_load() completed")
 end

@@ -1,6 +1,8 @@
 -- Main prompt processing service
 -- Note: Parsers are loaded via script.load() and available as modules
 
+local PromptService = {}
+
 function PromptService.process_prompt(matches, line)
   PROMPT_INFO.hp = matches[2]
   PROMPT_INFO.hp_max = matches[3]
