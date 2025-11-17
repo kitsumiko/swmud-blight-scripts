@@ -41,6 +41,7 @@ Config.MOVE_COMMANDS = {
 
 -- Export as global for backward compatibility
 CONFIG = Config
+P_STR = Config.P_STR
 
 return Config
 

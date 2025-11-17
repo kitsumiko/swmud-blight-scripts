@@ -96,6 +96,11 @@ function script_load()
   if file_exists('~/.config/blightmud/private/020_character.lua') then
     script.load('~/.config/blightmud/private/020_character.lua')
   end
+  
+  -- Initial status display
+  if status_draw then
+    status_draw()
+  end
 end
 
 function set_status_default()
