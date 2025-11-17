@@ -3,8 +3,15 @@
 
 local LogUtils = {}
 
--- Log file path (can be configured)
-LogUtils.log_file = os.getenv("HOME") .. "/.config/blightmud/swmud_debug.log"
+-- Log file path (can be configured via environment variable or default)
+-- Default: ~/.config/blightmud/swmud_debug.log
+-- Can be overridden by setting SWMUD_LOG_PATH environment variable
+-- Or mount a directory and set it to that path
+local log_path = os.getenv("SWMUD_LOG_PATH")
+if not log_path then
+  log_path = os.getenv("HOME") .. "/.config/blightmud/swmud_debug.log"
+end
+LogUtils.log_file = log_path
 
 function LogUtils.write(message)
   local file = io.open(LogUtils.log_file, "a")

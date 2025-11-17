@@ -1,6 +1,9 @@
 -- Core initialization and module loading
 
 blight.output("DEBUG: init.lua - File is executing!")
+if LOG_DEBUG then
+  LOG_DEBUG("init.lua - File is executing!")
+end
 
 local function to_boolean(str)
   local bool = false
@@ -151,6 +154,8 @@ blight.output("DEBUG: init.lua - Global script_load type: " .. type(_G.script_lo
 -- Auto-call script_load now that we're loaded
 -- This ensures script_load runs after init.lua has fully executed
 blight.output("DEBUG: init.lua - Auto-calling script_load()...")
+if LOG_DEBUG then LOG_DEBUG("init.lua - Auto-calling script_load()...") end
 script_load()
 blight.output("DEBUG: init.lua - script_load() completed")
+if LOG_DEBUG then LOG_DEBUG("init.lua - script_load() completed") end
 
