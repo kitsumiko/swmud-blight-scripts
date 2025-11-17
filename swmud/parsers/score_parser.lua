@@ -19,11 +19,13 @@ function ScoreParser.process(line)
   end
   local guild_matches = PROMPT_INFO.primary_guild_regexp:match(line:line())
   if guild_matches ~= nil then
-    CHAR_DATA.prime_guild = guild_matches[3]
+    -- The regex now captures the guild name directly in group 1
+    CHAR_DATA.prime_guild = TRIM_STRING(guild_matches[1])
   end
   local char_matches = PROMPT_INFO.char_regexp:match(line:line())
   if char_matches ~= nil then
-    CHAR_DATA.character_name = char_matches[2]
+    -- The regex now captures the full name in group 1
+    CHAR_DATA.character_name = TRIM_STRING(char_matches[1])
   end
   PROMPT_INFO.score_catch = PROMPT_INFO.score_catch + 1
   if PROMPT_INFO.score_catch >= 20 then
