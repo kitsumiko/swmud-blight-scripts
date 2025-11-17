@@ -13,8 +13,19 @@ function ScoreParser.process(line)
       local guild_name = TRIM_STRING(cur_match[1])
       local level = tonumber(cur_match[2])
       
+      if LOG_DEBUG then
+        LOG_DEBUG("ScoreParser: Matched guild '" .. guild_name .. "' with level '" .. tostring(cur_match[2]) .. "'")
+      end
+      
       -- Check if it's a valid guild or "High Mortal"
-      local is_valid_guild = SET(PROMPT_INFO.guilds)[guild_name] or guild_name == "High Mortal"
+      local guilds_set = SET(PROMPT_INFO.guilds)
+      local is_in_guilds = guilds_set[guild_name]
+      local is_high_mortal = guild_name == "High Mortal"
+      local is_valid_guild = is_in_guilds or is_high_mortal
+      
+      if LOG_DEBUG then
+        LOG_DEBUG("ScoreParser: is_in_guilds=" .. tostring(is_in_guilds) .. ", is_high_mortal=" .. tostring(is_high_mortal) .. ", is_valid=" .. tostring(is_valid_guild))
+      end
       
       if is_valid_guild then
         if level and level > 0 then
@@ -26,6 +37,10 @@ function ScoreParser.process(line)
           if SET_VALUE_CONTAINS(LEVEL_TABLE, guild_name) then
             REMOVE_FROM_SET(LEVEL_TABLE, guild_name)
           end
+        end
+      else
+        if LOG_DEBUG then
+          LOG_DEBUG("ScoreParser: Skipping invalid guild: " .. guild_name)
         end
       end
     end
