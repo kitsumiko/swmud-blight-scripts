@@ -236,7 +236,7 @@ See [LICENSE](LICENSE) file for details.
 
 ## Author
 
-Created by Miko (kishimiko@gmail.com)
+Created by Miko (kitsumiko@zenkoken.io)
 
 ## Support
 

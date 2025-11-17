@@ -45,7 +45,7 @@ function script_load()
     version_text = tostring(version_result:stdout():gsub("^%s*(.-)%s*$", "%1"))
   end
   blight.output((C_BYELLOW or "") .. "SWmud Scripts Version: " .. (C_RESET or "") .. (C_BWHITE or "") .. version_text .. (C_RESET or ""))
-  blight.output((C_BYELLOW or "") .. "Created by: Miko (kishimiko@gmail.com)" .. (C_RESET or ""))
+  blight.output((C_BYELLOW or "") .. "Created by: Miko (kitsumiko@zenkoken.io)" .. (C_RESET or ""))
   blight.output()
   
   -- Set STATUS_SEP after colors are loaded
