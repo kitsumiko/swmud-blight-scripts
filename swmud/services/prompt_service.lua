@@ -138,17 +138,17 @@ function PromptService.output_loop(line)
 
     -- score catch Information
     if PROMPT_INFO.score_catch ~=0 then
-      if LOG_DEBUG then
-        LOG_DEBUG("PromptService: Processing score line, score_catch=" .. tostring(PROMPT_INFO.score_catch))
-      end
+      -- if LOG_DEBUG then
+      --   LOG_DEBUG("PromptService: Processing score line, score_catch=" .. tostring(PROMPT_INFO.score_catch))
+      -- end
       -- Try multiple ways to get ScoreParser (handle deferred loading)
       local parser = ScoreParser or _G.ScoreParser
       if parser and parser.process then
         parser.process(line)
-      else
-        if LOG_DEBUG then
-          LOG_DEBUG("PromptService: ScoreParser not available! ScoreParser=" .. tostring(ScoreParser) .. ", _G.ScoreParser=" .. tostring(_G.ScoreParser))
-        end
+      -- else
+      --   if LOG_DEBUG then
+      --     LOG_DEBUG("PromptService: ScoreParser not available! ScoreParser=" .. tostring(ScoreParser) .. ", _G.ScoreParser=" .. tostring(_G.ScoreParser))
+      --   end
       end
     end
 
@@ -202,9 +202,9 @@ function PromptService.input_loop(line)
   PROMPT_INFO.score_catch = 0
   if PROMPT_INFO.score_regexp:match(line_text) ~= nil then
     PROMPT_INFO.score_catch = 1
-    if LOG_DEBUG then
-      LOG_DEBUG("PromptService: score command detected, score_catch set to 1")
-    end
+    -- if LOG_DEBUG then
+    --   LOG_DEBUG("PromptService: score command detected, score_catch set to 1")
+    -- end
   end
   PROMPT_INFO.delays_catch = 0
   if PROMPT_INFO.delays_regexp:match(line_text) ~= nil then
@@ -270,19 +270,19 @@ end
 PromptService = PromptService
 
 -- Set up listeners
-if LOG_DEBUG then
-  LOG_DEBUG("Setting up prompt service listeners...")
-else
-  blight.output("DEBUG: Setting up prompt service listeners...")
-end
+-- if LOG_DEBUG then
+--   LOG_DEBUG("Setting up prompt service listeners...")
+-- else
+--   blight.output("DEBUG: Setting up prompt service listeners...")
+-- end
 
 if mud and mud.add_output_listener then
   mud.add_output_listener(PromptService.output_loop)
-  if LOG_DEBUG then
-    LOG_DEBUG("Output listener added")
-  else
-    blight.output("DEBUG: Output listener added")
-  end
+  -- if LOG_DEBUG then
+  --   LOG_DEBUG("Output listener added")
+  -- else
+  --   blight.output("DEBUG: Output listener added")
+  -- end
 else
   local msg = "Warning: mud.add_output_listener not available"
   if LOG_DEBUG then
@@ -294,11 +294,11 @@ end
 
 if mud and mud.add_input_listener then
   mud.add_input_listener(PromptService.input_loop)
-  if LOG_DEBUG then
-    LOG_DEBUG("Input listener added")
-  else
-    blight.output("DEBUG: Input listener added")
-  end
+  -- if LOG_DEBUG then
+  --   LOG_DEBUG("Input listener added")
+  -- else
+  --   blight.output("DEBUG: Input listener added")
+  -- end
 else
   local msg = "Warning: mud.add_input_listener not available"
   if LOG_DEBUG then
@@ -311,11 +311,11 @@ end
 -- Add timer to update every second
 if timer and timer.add and status_draw then
   timer.add(1, 0, status_draw)
-  if LOG_DEBUG then
-    LOG_DEBUG("Timer added for status_draw")
-  else
-    blight.output("DEBUG: Timer added for status_draw")
-  end
+  -- if LOG_DEBUG then
+  --   LOG_DEBUG("Timer added for status_draw")
+  -- else
+  --   blight.output("DEBUG: Timer added for status_draw")
+  -- end
 else
   local msg = "Warning: timer.add or status_draw not available"
   if LOG_DEBUG then
@@ -337,10 +337,10 @@ else
   end
 end
 
-if LOG_DEBUG then
-  LOG_DEBUG("Prompt service setup complete")
-else
-  blight.output("DEBUG: Prompt service setup complete")
-end
+-- if LOG_DEBUG then
+--   LOG_DEBUG("Prompt service setup complete")
+-- else
+--   blight.output("DEBUG: Prompt service setup complete")
+-- end
 return PromptService
 

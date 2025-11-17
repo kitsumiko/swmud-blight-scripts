@@ -16,9 +16,9 @@ function ScoreParser.process(line)
       local guild_name = TRIM_STRING(cur_match[1])
       local level = tonumber(cur_match[2])
       
-      if LOG_DEBUG then
-        LOG_DEBUG("ScoreParser: Matched guild '" .. guild_name .. "' with level '" .. tostring(cur_match[2]) .. "'")
-      end
+      -- if LOG_DEBUG then
+      --   LOG_DEBUG("ScoreParser: Matched guild '" .. guild_name .. "' with level '" .. tostring(cur_match[2]) .. "'")
+      -- end
       
       -- Check if it's a valid guild or "High Mortal"
       local guilds_set = SET(PROMPT_INFO.guilds)
@@ -26,25 +26,25 @@ function ScoreParser.process(line)
       local is_high_mortal = guild_name == "High Mortal"
       local is_valid_guild = is_in_guilds or is_high_mortal
       
-      if LOG_DEBUG then
-        LOG_DEBUG("ScoreParser: is_in_guilds=" .. tostring(is_in_guilds) .. ", is_high_mortal=" .. tostring(is_high_mortal) .. ", is_valid=" .. tostring(is_valid_guild))
-      end
+      -- if LOG_DEBUG then
+      --   LOG_DEBUG("ScoreParser: is_in_guilds=" .. tostring(is_in_guilds) .. ", is_high_mortal=" .. tostring(is_high_mortal) .. ", is_valid=" .. tostring(is_valid_guild))
+      -- end
       
       if is_valid_guild then
         if level and level > 0 then
           LEVEL_TABLE[guild_name] = level
-          if LOG_DEBUG then
-            LOG_DEBUG("ScoreParser: Set " .. guild_name .. " = " .. tostring(level))
-          end
+          -- if LOG_DEBUG then
+          --   LOG_DEBUG("ScoreParser: Set " .. guild_name .. " = " .. tostring(level))
+          -- end
         else
           if SET_VALUE_CONTAINS(LEVEL_TABLE, guild_name) then
             REMOVE_FROM_SET(LEVEL_TABLE, guild_name)
           end
         end
-      else
-        if LOG_DEBUG then
-          LOG_DEBUG("ScoreParser: Skipping invalid guild: " .. guild_name)
-        end
+      -- else
+      --   if LOG_DEBUG then
+      --     LOG_DEBUG("ScoreParser: Skipping invalid guild: " .. guild_name)
+      --   end
       end
     end
   end
@@ -54,9 +54,9 @@ function ScoreParser.process(line)
   if guild_matches ~= nil then
     -- The regex now captures the guild name directly in group 1
     CHAR_DATA.prime_guild = TRIM_STRING(guild_matches[1])
-    if LOG_DEBUG then
-      LOG_DEBUG("ScoreParser: Set prime_guild = " .. CHAR_DATA.prime_guild)
-    end
+    -- if LOG_DEBUG then
+    --   LOG_DEBUG("ScoreParser: Set prime_guild = " .. CHAR_DATA.prime_guild)
+    -- end
   end
   
   -- Process character name line (e.g., "You are: Miko the Mistress of Cyberspace")
@@ -64,9 +64,9 @@ function ScoreParser.process(line)
   if char_matches ~= nil then
     -- The regex now captures the full name in group 1
     CHAR_DATA.character_name = TRIM_STRING(char_matches[1])
-    if LOG_DEBUG then
-      LOG_DEBUG("ScoreParser: Set character_name = " .. CHAR_DATA.character_name)
-    end
+    -- if LOG_DEBUG then
+    --   LOG_DEBUG("ScoreParser: Set character_name = " .. CHAR_DATA.character_name)
+    -- end
   end
   
   PROMPT_INFO.score_catch = PROMPT_INFO.score_catch + 1
@@ -79,9 +79,9 @@ end
 ScoreParser = ScoreParser
 _G.ScoreParser = ScoreParser
 
-if LOG_DEBUG then
-  LOG_DEBUG("ScoreParser: Module loaded and exported")
-end
+-- if LOG_DEBUG then
+--   LOG_DEBUG("ScoreParser: Module loaded and exported")
+-- end
 
 return ScoreParser
 
