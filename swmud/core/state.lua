@@ -4,20 +4,24 @@
 local State = {}
 
 -- Character data
+-- Note: Color constants should be available since colors.lua is loaded before state.lua
+local C_BYELLOW_SAFE = C_BYELLOW or ""
+local C_RESET_SAFE = C_RESET or ""
+
 State.character = {
   sense_distrubance = 0,
   zoology = 0,
   mrh_switch = 0,
   autowield_switch = 0,
   sense_farsight = 0,
-  character_name = "Unknown: "..C_BYELLOW.."<score>"..C_RESET,
+  character_name = "Unknown: "..C_BYELLOW_SAFE.."<score>"..C_RESET_SAFE,
   race = "none",
-  prime_guild = "Unknown: "..C_BYELLOW.."<score>"..C_RESET,
+  prime_guild = "Unknown: "..C_BYELLOW_SAFE.."<score>"..C_RESET_SAFE,
   second_guild = "None",
   third_guild = "None",
   racial_right_bracket = "",
   racial_left_bracket = "",
-  character_levels = "Unknown: "..C_BYELLOW.."<score>"..C_RESET,
+  character_levels = "Unknown: "..C_BYELLOW_SAFE.."<score>"..C_RESET_SAFE,
   skill_delays = "",
 }
 
@@ -26,7 +30,7 @@ State.setup = {
   prompt_set = 0,
   uptime_set = 0,
   reboot_set = 0,
-  uptime_str = "Unknown: "..C_BYELLOW.."<uptime>"..C_RESET,
+  uptime_str = "Unknown: "..C_BYELLOW_SAFE.."<uptime>"..C_RESET_SAFE,
 }
 
 -- Prompt information
