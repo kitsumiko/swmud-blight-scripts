@@ -53,6 +53,8 @@ function script_load()
     CONFIG.STATUS_SEP = (C_GREEN or "").." | "..(C_RESET or "")
   end
   STATUS_SEP = STATUS_SEP or ((C_GREEN or "").." | "..(C_RESET or ""))
+  -- Export STATUS_SEP as global
+  _G.STATUS_SEP = STATUS_SEP
   
   -- Load state (must be after utilities and colors)
   script.load('~/.config/blightmud/swmud/core/state.lua')
@@ -152,8 +154,11 @@ function RELOAD_SCRIPTS()
   script.reset()
   trigger.clear()
   alias.clear()
-  script_load()
-  blight.output()
+  -- Use a timer to ensure script_load happens after reset completes
+  timer.add(0.1, 1, function()
+    script_load()
+    blight.output()
+  end)
 end
 
 -- Export for use in entry point (multiple ways to ensure it's available)

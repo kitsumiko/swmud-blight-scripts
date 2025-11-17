@@ -138,17 +138,20 @@ function PromptService.output_loop(line)
 
     -- score catch Information
     if PROMPT_INFO.score_catch ~=0 then
-      -- if LOG_DEBUG then
-      --   LOG_DEBUG("PromptService: Processing score line, score_catch=" .. tostring(PROMPT_INFO.score_catch))
-      -- end
       -- Try multiple ways to get ScoreParser (handle deferred loading)
+      -- Check both global scope and _G table
       local parser = ScoreParser or _G.ScoreParser
+      if not parser then
+        -- If still not available, try to reload it (shouldn't happen, but safety check)
+        -- This is a fallback for edge cases during reload
+        if LOG_DEBUG then
+          LOG_DEBUG("PromptService: ScoreParser not available, attempting to reload score_parser")
+        end
+        script.load('~/.config/blightmud/swmud/parsers/score_parser.lua')
+        parser = ScoreParser or _G.ScoreParser
+      end
       if parser and parser.process then
         parser.process(line)
-      -- else
-      --   if LOG_DEBUG then
-      --     LOG_DEBUG("PromptService: ScoreParser not available! ScoreParser=" .. tostring(ScoreParser) .. ", _G.ScoreParser=" .. tostring(_G.ScoreParser))
-      --   end
       end
     end
 
