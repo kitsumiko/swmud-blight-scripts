@@ -98,9 +98,15 @@ function script_load()
   end
   
   -- Initial status display
+  blight.output("DEBUG: Checking status_draw...")
   if status_draw then
+    blight.output("DEBUG: status_draw exists, calling it...")
     status_draw()
+    blight.output("DEBUG: status_draw called")
+  else
+    blight.output("DEBUG: ERROR - status_draw is nil!")
   end
+  blight.output("DEBUG: script_load() completed")
 end
 
 function set_status_default()

@@ -232,14 +232,17 @@ end
 PromptService = PromptService
 
 -- Set up listeners
+blight.output("DEBUG: Setting up prompt service listeners...")
 if mud and mud.add_output_listener then
   mud.add_output_listener(PromptService.output_loop)
+  blight.output("DEBUG: Output listener added")
 else
   blight.output("Warning: mud.add_output_listener not available")
 end
 
 if mud and mud.add_input_listener then
   mud.add_input_listener(PromptService.input_loop)
+  blight.output("DEBUG: Input listener added")
 else
   blight.output("Warning: mud.add_input_listener not available")
 end
@@ -247,9 +250,20 @@ end
 -- Add timer to update every second
 if timer and timer.add and status_draw then
   timer.add(1, 0, status_draw)
+  blight.output("DEBUG: Timer added for status_draw")
 else
   blight.output("Warning: timer.add or status_draw not available")
+  if not timer then
+    blight.output("  - timer is nil")
+  end
+  if not timer.add then
+    blight.output("  - timer.add is nil")
+  end
+  if not status_draw then
+    blight.output("  - status_draw is nil")
+  end
 end
 
+blight.output("DEBUG: Prompt service setup complete")
 return PromptService
 
