@@ -4,12 +4,14 @@
 local LogUtils = {}
 
 -- Log file path (can be configured via environment variable or default)
--- Default: ~/.config/blightmud/swmud_debug.log
+-- Default: ~/.local/share/blightmud/logs/syslogs/swmud_debug.log
 -- Can be overridden by setting SWMUD_LOG_PATH environment variable
--- Or mount a directory and set it to that path
 local log_path = os.getenv("SWMUD_LOG_PATH")
 if not log_path then
-  log_path = os.getenv("HOME") .. "/.config/blightmud/swmud_debug.log"
+  local log_dir = os.getenv("HOME") .. "/.local/share/blightmud/logs/syslogs"
+  -- Create directory if it doesn't exist
+  os.execute("mkdir -p " .. log_dir)
+  log_path = log_dir .. "/swmud_debug.log"
 end
 LogUtils.log_file = log_path
 
