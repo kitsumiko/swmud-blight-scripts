@@ -10,7 +10,8 @@ A comprehensive, modular Lua scripting system for [SWMud](http://swmud.org) usin
 - **Smart Aliases**: Flexible alias system with nickname support
 - **Prompt Parsing**: Automatic extraction of character information from game prompts
 - **Combat Analytics**: Target health estimation, DPR calculations, and combat summaries
-- **Experience Tracking**: Guild level tracking and experience requirements
+- **Experience Tracking**: Guild level tracking, experience requirements, and "exp to next level" display
+- **Logging**: Timestamped debug logging to file (`swmud_debug.log`)
 
 ## Project Structure
 
@@ -23,7 +24,7 @@ swmud/
 ├── ui/                # User interface (colors, status rendering)
 ├── commands/          # Command handling (aliases, nicknames)
 ├── parsers/           # Input parsing (prompt, score, delays, damage, room)
-├── services/          # Business logic (status, skills, DPR, data loading)
+├── services/          # Business logic (status, skills, DPR, data loading, exp table)
 ├── models/            # Data models (combat structures)
 └── data/              # Data files (experience tables)
 ```
@@ -99,7 +100,7 @@ docker run -it \
 
 After making changes, reload scripts in-game:
 ```
-/reload_scripts
+/reload
 ```
 
 ## How It Works
@@ -124,18 +125,22 @@ After making changes, reload scripts in-game:
 
 ### Key Components
 
-- **Status Display**: 4-line status bar showing vitals, experience, skills, combat info
+- **Status Display**: 4-line status bar showing vitals, experience (with "exp to next level"), skills, combat info
 - **Prompt Parser**: Extracts HP, SP, experience, credits, alignment from game prompts
+- **Score Parser**: Parses `score` command to extract character name, primary guild, and all guild levels
 - **DPR Calculator**: Tracks damage per round for you and assists
-- **Skill Tracker**: Monitors skill delays and status effects
+- **Skill Tracker**: Monitors skill delays and status effects (shows "None" when no delays pending)
 - **Target Tracking**: Estimates target health and tracks combat statistics
+- **Experience Table Service**: Loads and queries experience requirements for leveling calculations
 
 ## Usage
 
 ### Commands
 
-- `/reload_scripts` - Reload all scripts
+- `/reload` - Reload all Lua scripts (hot reload without disconnecting)
 - `/reconnect` - Reconnect to SWMud
+- `score` - Parse character information (name, guild, levels)
+- `delays` - Check skill delays (shows "None" if no delays pending)
 - `reprompt` - Refresh character information
 - `set_move <command>` - Set move command prefix (e.g., `set_move sneak`)
 
@@ -177,11 +182,19 @@ We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for:
 - `parsers/room_parser.lua` - Parse room information
 
 ### Services
-- `services/prompt_service.lua` - Main prompt processing
+- `services/prompt_service.lua` - Main prompt processing and input/output listeners
 - `services/status_updater.lua` - Update status information
-- `services/skill_tracker.lua` - Track skill usage
+- `services/skill_tracker.lua` - Track skill usage and delays
 - `services/dpr_calculator.lua` - Calculate damage per round
 - `services/data_loader.lua` - Load data files
+- `services/exp_table_service.lua` - Experience table loading and calculations
+
+### Utils
+- `utils/log_utils.lua` - File-based logging utilities
+- `utils/table_utils.lua` - Table manipulation utilities
+- `utils/string_utils.lua` - String manipulation utilities
+- `utils/math_utils.lua` - Math utilities
+- `utils/time_utils.lua` - Time conversion utilities
 
 ### UI
 - `ui/status_renderer.lua` - Render status lines
@@ -194,6 +207,7 @@ We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for:
 1. Check that `000_connect.lua` exists in the root directory
 2. Verify Docker volume mounts are correct
 3. Check for Lua syntax errors in modules
+4. Check debug logs at `~/.local/share/blightmud/logs/syslogs/swmud_debug.log` (or custom path via `SWMUD_LOG_PATH` env var)
 
 ### Module Not Found
 
@@ -206,6 +220,15 @@ We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for:
 1. Verify state is accessed correctly
 2. Check if state is initialized in `core/state.lua`
 3. Ensure modules are loaded in correct order
+4. Run `score` command to refresh character information
+5. Check debug logs for parsing errors
+
+### Debug Logging
+
+Debug logs are written to a timestamped file. By default, logs are saved to:
+- `~/.local/share/blightmud/logs/syslogs/swmud_debug.log`
+
+You can customize the log path by setting the `SWMUD_LOG_PATH` environment variable.
 
 ## License
 
