@@ -174,6 +174,12 @@ State.skills = {
 -- Track if delays command has been run and found no delays
 State.delays_checked = false
 
+-- Experience tracking data (initialized by exp_tracker.lua)
+State.exp_tracker_data = nil
+
+-- Room tracking data (initialized by room_service.lua)
+State.room_tracker_data = nil
+
 -- Export as globals for backward compatibility
 CHAR_DATA = State.character
 SETUP_STATE = State.setup
@@ -200,6 +206,8 @@ SKILL_STATUS_START = State.skills.status_start
 SKILL_STATUS_END = State.skills.status_end
 SKILL_STATUS_LEN = State.skills.status_len
 DELAYS_CHECKED = State.delays_checked
+EXP_TRACKER_DATA = State.exp_tracker_data
+ROOM_TRACKER_DATA = State.room_tracker_data
 
 return State
 

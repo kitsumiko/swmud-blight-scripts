@@ -27,13 +27,13 @@ end
 function LogUtils.write_debug(message)
   LogUtils.write("DEBUG: " .. message)
   -- Also output to blightmud console
-  blight.output("DEBUG: " .. message)
+  -- blight.output("DEBUG: " .. message)
 end
 
 function LogUtils.write_error(message)
   LogUtils.write("ERROR: " .. message)
   -- Also output to blightmud console
-  blight.output("ERROR: " .. message)
+  -- blight.output("ERROR: " .. message)
 end
 
 function LogUtils.clear()
