@@ -11,9 +11,9 @@ function ScoreParser.process(line)
   -- Process level lines (e.g., "Jedi         : 30")
   local score_matches = PROMPT_INFO.level_regexp:match_all(line_text)
   if score_matches ~= nil and TABLE_LENGTH(score_matches) > 0 then
-    if LOG_DEBUG then
-      LOG_DEBUG("ScoreParser: Found " .. tostring(TABLE_LENGTH(score_matches)) .. " matches in line: " .. line_text)
-    end
+    -- if LOG_DEBUG then
+    --   LOG_DEBUG("ScoreParser: Found " .. tostring(TABLE_LENGTH(score_matches)) .. " matches in line: " .. line_text)
+    -- end
     for s_ind, cur_match in pairs(score_matches) do
       -- cur_match[1] is the full match, cur_match[2] is the guild name, cur_match[3] is the level
       local guild_name = TRIM_STRING(cur_match[2])
@@ -36,18 +36,18 @@ function ScoreParser.process(line)
       if is_valid_guild then
         if level and level > 0 then
           LEVEL_TABLE[guild_name] = level
-          if LOG_DEBUG then
-            LOG_DEBUG("ScoreParser: Set " .. guild_name .. " = " .. tostring(level))
-          end
+          -- if LOG_DEBUG then
+          --   LOG_DEBUG("ScoreParser: Set " .. guild_name .. " = " .. tostring(level))
+          -- end
         else
           if SET_VALUE_CONTAINS(LEVEL_TABLE, guild_name) then
             REMOVE_FROM_SET(LEVEL_TABLE, guild_name)
           end
         end
       else
-        if LOG_DEBUG then
-          LOG_DEBUG("ScoreParser: Skipping invalid guild: " .. guild_name)
-        end
+        -- if LOG_DEBUG then
+        --   LOG_DEBUG("ScoreParser: Skipping invalid guild: " .. guild_name)
+        -- end
       end
     end
   end
@@ -57,9 +57,9 @@ function ScoreParser.process(line)
   if guild_matches ~= nil then
     -- In Blightmud, match[1] is the full match, match[2] is the first capture group
     CHAR_DATA.prime_guild = TRIM_STRING(guild_matches[2])
-    if LOG_DEBUG then
-      LOG_DEBUG("ScoreParser: Set prime_guild = " .. CHAR_DATA.prime_guild)
-    end
+    -- if LOG_DEBUG then
+    --   LOG_DEBUG("ScoreParser: Set prime_guild = " .. CHAR_DATA.prime_guild)
+    -- end
   end
   
   -- Process character name line (e.g., "You are: Miko")
@@ -67,14 +67,24 @@ function ScoreParser.process(line)
   if char_matches ~= nil then
     -- In Blightmud, match[1] is the full match, match[2] is the first capture group
     CHAR_DATA.character_name = TRIM_STRING(char_matches[2])
-    if LOG_DEBUG then
-      LOG_DEBUG("ScoreParser: Set character_name = " .. CHAR_DATA.character_name)
-    end
+    -- if LOG_DEBUG then
+    --   LOG_DEBUG("ScoreParser: Set character_name = " .. CHAR_DATA.character_name)
+    -- end
   end
   
   PROMPT_INFO.score_catch = PROMPT_INFO.score_catch + 1
   if PROMPT_INFO.score_catch >= 20 then
     PROMPT_INFO.score_catch = 0
+    -- Initialize experience tracking if not already initialized
+    if record_exp_change and EXP_TRACKER_DATA then
+      local current_exp = tonumber(STRIP_COLOR(PROMPT_INFO.exp)) or 0
+      if EXP_TRACKER_DATA.session_start_exp == 0 and current_exp > 0 then
+        EXP_TRACKER_DATA.session_start_exp = current_exp
+        EXP_TRACKER_DATA.last_exp = current_exp
+        EXP_TRACKER_DATA.session_start_time = os.time()
+        EXP_TRACKER_DATA.last_exp_time = os.time()
+      end
+    end
   end
 end
 

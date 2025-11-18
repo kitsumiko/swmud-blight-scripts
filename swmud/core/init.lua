@@ -102,6 +102,14 @@ function script_load()
     EXP_TABLE_DATA = ExpTableService.load_exp_table('~/.config/blightmud/swmud/data/100_data_exp.txt')
   end
   
+  -- Load experience and room tracking services (after exp_table_service for dependencies)
+  script.load('~/.config/blightmud/swmud/services/exp_tracker.lua')
+  script.load('~/.config/blightmud/swmud/services/room_service.lua')
+  
+  -- Load experience and room tracking commands
+  script.load('~/.config/blightmud/swmud/commands/exp_commands.lua')
+  script.load('~/.config/blightmud/swmud/commands/room_commands.lua')
+  
   -- Load character script if it exists
   if file_exists('~/.config/blightmud/private/020_character.lua') then
     script.load('~/.config/blightmud/private/020_character.lua')

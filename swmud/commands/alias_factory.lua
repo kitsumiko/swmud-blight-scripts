@@ -46,6 +46,11 @@ end
 
 function AliasFactory.create_move(a_in)
   alias.add("^" .. a_in .. "$", function (m)
+    -- Record exit usage for room tracking
+    if record_exit then
+      record_exit(a_in)
+    end
+    
     if PROMPT_INFO.move_cmd == "" then
       GLOBAL_SEND(a_in, true)
     else

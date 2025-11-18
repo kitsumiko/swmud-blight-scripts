@@ -7,6 +7,10 @@ function StringUtils.trim(s)
 end
 
 function StringUtils.strip_color(s)
+  -- Handle non-string values (numbers, nil, etc.)
+  if type(s) ~= "string" then
+    return tostring(s or "")
+  end
   return (s:gsub('\x1b%[%d+;%d+;%d+;%d+;%d+m',''):gsub('\x1b%[%d+;%d+;%d+;%d+m',''):gsub('\x1b%[%d+;%d+;%d+m',''):gsub('\x1b%[%d+;%d+m',''):gsub('\x1b%[%d+m',''))
 end
 

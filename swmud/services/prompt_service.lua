@@ -4,6 +4,7 @@
 local PromptService = {}
 
 function PromptService.process_prompt(matches, line)
+  local old_exp = tonumber(STRIP_COLOR(PROMPT_INFO.exp)) or 0
   PROMPT_INFO.hp = matches[2]
   PROMPT_INFO.hp_max = matches[3]
   PROMPT_INFO.exp = matches[4]
@@ -15,6 +16,13 @@ function PromptService.process_prompt(matches, line)
   PROMPT_INFO.sp_max = matches[10]
   PROMPT_INFO.drug = matches[11]
   PROMPT_INFO.char_active = 1
+  
+  -- Track experience changes
+  local new_exp = tonumber(STRIP_COLOR(PROMPT_INFO.exp)) or 0
+  if record_exp_change and new_exp ~= old_exp then
+    record_exp_change(new_exp)
+  end
+  
   status_draw()
 end
 
@@ -144,9 +152,9 @@ function PromptService.output_loop(line)
       if not parser then
         -- If still not available, try to reload it (shouldn't happen, but safety check)
         -- This is a fallback for edge cases during reload
-        if LOG_DEBUG then
-          LOG_DEBUG("PromptService: ScoreParser not available, attempting to reload score_parser")
-        end
+        -- if LOG_DEBUG then
+        --   LOG_DEBUG("PromptService: ScoreParser not available, attempting to reload score_parser")
+        -- end
         script.load('~/.config/blightmud/swmud/parsers/score_parser.lua')
         parser = ScoreParser or _G.ScoreParser
       end
@@ -288,11 +296,11 @@ if mud and mud.add_output_listener then
   -- end
 else
   local msg = "Warning: mud.add_output_listener not available"
-  if LOG_DEBUG then
-    LOG_DEBUG(msg)
-  else
-    blight.output(msg)
-  end
+  -- if LOG_DEBUG then
+  --   LOG_DEBUG(msg)
+  -- else
+  --   blight.output(msg)
+  -- end
 end
 
 if mud and mud.add_input_listener then
@@ -304,11 +312,11 @@ if mud and mud.add_input_listener then
   -- end
 else
   local msg = "Warning: mud.add_input_listener not available"
-  if LOG_DEBUG then
-    LOG_DEBUG(msg)
-  else
-    blight.output(msg)
-  end
+  -- if LOG_DEBUG then
+  --   LOG_DEBUG(msg)
+  -- else
+  --   blight.output(msg)
+  -- end
 end
 
 -- Add timer to update every second
@@ -321,22 +329,22 @@ if timer and timer.add and status_draw then
   -- end
 else
   local msg = "Warning: timer.add or status_draw not available"
-  if LOG_DEBUG then
-    LOG_DEBUG(msg)
-  else
-    blight.output(msg)
-  end
+  -- if LOG_DEBUG then
+  --   LOG_DEBUG(msg)
+  -- else
+  --   blight.output(msg)
+  -- end
   if not timer then
     local msg2 = "  - timer is nil"
-    if LOG_DEBUG then LOG_DEBUG(msg2) else blight.output(msg2) end
+    -- if LOG_DEBUG then LOG_DEBUG(msg2) else blight.output(msg2) end
   end
   if timer and not timer.add then
     local msg2 = "  - timer.add is nil"
-    if LOG_DEBUG then LOG_DEBUG(msg2) else blight.output(msg2) end
+    -- if LOG_DEBUG then LOG_DEBUG(msg2) else blight.output(msg2) end
   end
   if not status_draw then
     local msg2 = "  - status_draw is nil"
-    if LOG_DEBUG then LOG_DEBUG(msg2) else blight.output(msg2) end
+    -- if LOG_DEBUG then LOG_DEBUG(msg2) else blight.output(msg2) end
   end
 end
 

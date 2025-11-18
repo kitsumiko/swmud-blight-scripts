@@ -27,14 +27,60 @@ swmud/
 ├── services/          # Business logic (status, skills, DPR, data loading, exp table)
 ├── models/            # Data models (combat structures)
 └── data/              # Data files (experience tables)
+installers/            # Installation scripts for Windows and Linux
 ```
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed information about the codebase structure and how to contribute.
 
-## Quick Start
+## Installation
+
+### Quick Installation
+
+The easiest way to install the scripts is using the provided installer scripts. See [INSTALL.md](INSTALL.md) for detailed instructions.
+
+**Linux/macOS:**
+```bash
+chmod +x installers/install.sh
+./installers/install.sh
+```
+
+**Windows (PowerShell):**
+```powershell
+.\installers\install.ps1
+```
+
+**Windows (Command Prompt):**
+```cmd
+installers\install.bat
+```
 
 ### Prerequisites
 
+- [Blightmud](https://blightmud.github.io/) client installed on your system
+- See [INSTALL.md](INSTALL.md) for detailed Blightmud installation instructions
+
+For detailed installation instructions, troubleshooting, and manual installation steps, please see [INSTALL.md](INSTALL.md).
+
+## Quick Start
+
+### Option 1: Direct Installation (Recommended)
+
+1. Install [Blightmud](https://blightmud.github.io/) on your system
+2. Clone this repository:
+   ```bash
+   git clone https://github.com/mikotaichou/swmud-blight-scripts.git
+   cd swmud-blight-scripts
+   ```
+3. Run the installer:
+   - **Linux/macOS:** `./installers/install.sh`
+   - **Windows:** `.\installers\install.ps1` or `installers\install.bat`
+4. Launch Blightmud and connect to SWMud
+
+See [INSTALL.md](INSTALL.md) for detailed installation instructions.
+
+### Option 2: Docker (Alternative)
+
+**Prerequisites:**
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/)
 - [Cygwin](https://www.cygwin.com/) (if running on Windows)
 
@@ -204,10 +250,15 @@ We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for:
 
 ### Scripts Not Loading
 
-1. Check that `000_connect.lua` exists in the root directory
-2. Verify Docker volume mounts are correct
+1. Check that `000_connect.lua` exists in your Blightmud config directory:
+   - Linux/macOS: `~/.config/blightmud/000_connect.lua`
+   - Windows: `%APPDATA%\blightmud\000_connect.lua`
+2. Verify the `swmud` directory exists in the config directory
 3. Check for Lua syntax errors in modules
 4. Check debug logs at `~/.local/share/blightmud/logs/syslogs/swmud_debug.log` (or custom path via `SWMUD_LOG_PATH` env var)
+5. If using Docker, verify Docker volume mounts are correct
+
+For more troubleshooting help, see [INSTALL.md](INSTALL.md#troubleshooting).
 
 ### Module Not Found
 
