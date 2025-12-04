@@ -56,7 +56,7 @@ State.prompt = {
   emote_regexp = regex.new("^([a-zA-Z]*)emote "),
   primary_guild_regexp = regex.new("^Levels:\\s+\\(Primary Guild:\\s+([a-zA-Z]+(?: [a-zA-Z]+)*)\\)"),
   prompt_re = regex.new("^([^ ]*)/([^ ]*) ([^ ]*) ([^ ]*) ([^ ]*)/([^ ]*) ([^ ]*) ([^ ]*)/([^ ]*) ([^ ]* ?[^ ]*? ?[^ ]*?) >"),
-  droid_match = regex.new("^\\s*(C3|T5|SLR|GNK|B1|RX|G2|MLR|R4P|NR|FX|IF|IG|RA|XLR|BLX|T7|C5|S9E|B2|DD|ALR|MSE|OOM|R8|2\\-1C|HK|FA\\-5)(.*) \\(Yours\\)$"),
+  droid_match = regex.new("^\\s*(C3|T5|SLR|GNK|B1|RX|G2|MLR|R4P|NR|FX|IF|IG|RA|XLR|BLX|T7|C5|S9E|B2|DD|ALR|MSE|OOM|R8|2\\-1C|HK|FA\\-5)(.*) ((\\(Yours\\)|\\[Listening\\]))$"),
   room_match = regex.new("^(There are no obvious exits|There only obvious exit is|There are .* obvious exits:)(.*)$"),
   score_catch = 0,
   delays_catch = 0,
@@ -126,16 +126,17 @@ State.room = {
 
 -- Delays hooks
 State.delays_hooks = {
-  regex.new("^([a-zA-Z/]* ?[a-zA-Z/]* ?[a-zA-Z/]* ?[a-zA-Z/]*): ([ 0-9]*) seconds$"),
-  regex.new("^([a-zA-Z/]* ?[a-zA-Z/]* ?[a-zA-Z/]* ?[a-zA-Z/]*): ([ 0-9]*) minutes$"),
-  regex.new("^([a-zA-Z/]* ?[a-zA-Z/]* ?[a-zA-Z/]* ?[a-zA-Z/]*): ([ 0-9]*) minutes and ([0-9]*) seconds$"),
-  regex.new("^([a-zA-Z/]* ?[a-zA-Z/]* ?[a-zA-Z/]* ?[a-zA-Z/]*): ([ 0-9]*) minutes and ([0-9]*) second$"),
-  regex.new("^([a-zA-Z/]* ?[a-zA-Z/]* ?[a-zA-Z/]* ?[a-zA-Z/]*): ([ 0-9]*) minute and ([0-9]*) seconds$"),
-  regex.new("^([a-zA-Z/]* ?[a-zA-Z/]* ?[a-zA-Z/]* ?[a-zA-Z/]*): ([ 0-9]*) hour and ([0-9]*) seconds$"),
-  regex.new("^([a-zA-Z/]* ?[a-zA-Z/]* ?[a-zA-Z/]* ?[a-zA-Z/]*): ([ 0-9]*) hours and ([0-9]*) seconds$"),
-  regex.new("^([a-zA-Z/]* ?[a-zA-Z/]* ?[a-zA-Z/]* ?[a-zA-Z/]*): ([ 0-9]*) hours and ([0-9]*) minutes$"),
-  regex.new("^([a-zA-Z/]* ?[a-zA-Z/]* ?[a-zA-Z/]* ?[a-zA-Z/]*): ([ 0-9]*) hour, ([0-9]*) minutes, and ([0-9]*) seconds$"),
-  regex.new("^([a-zA-Z/]* ?[a-zA-Z/]* ?[a-zA-Z/]* ?[a-zA-Z/]*): ([ 0-9]*) hours, ([0-9]*) minutes, and ([0-9]*) seconds$"),
+  -- Support up to 6 words for skill names (e.g., "cureall surgery or nanoheal")
+  regex.new("^([a-zA-Z/]+(?: [a-zA-Z/]+){0,5}): ([ 0-9]*) seconds$"),
+  regex.new("^([a-zA-Z/]+(?: [a-zA-Z/]+){0,5}): ([ 0-9]*) minutes$"),
+  regex.new("^([a-zA-Z/]+(?: [a-zA-Z/]+){0,5}): ([ 0-9]*) minutes and ([0-9]*) seconds$"),
+  regex.new("^([a-zA-Z/]+(?: [a-zA-Z/]+){0,5}): ([ 0-9]*) minutes and ([0-9]*) second$"),
+  regex.new("^([a-zA-Z/]+(?: [a-zA-Z/]+){0,5}): ([ 0-9]*) minute and ([0-9]*) seconds$"),
+  regex.new("^([a-zA-Z/]+(?: [a-zA-Z/]+){0,5}): ([ 0-9]*) hour and ([0-9]*) seconds$"),
+  regex.new("^([a-zA-Z/]+(?: [a-zA-Z/]+){0,5}): ([ 0-9]*) hours and ([0-9]*) seconds$"),
+  regex.new("^([a-zA-Z/]+(?: [a-zA-Z/]+){0,5}): ([ 0-9]*) hours and ([0-9]*) minutes$"),
+  regex.new("^([a-zA-Z/]+(?: [a-zA-Z/]+){0,5}): ([ 0-9]*) hour, ([0-9]*) minutes, and ([0-9]*) seconds$"),
+  regex.new("^([a-zA-Z/]+(?: [a-zA-Z/]+){0,5}): ([ 0-9]*) hours, ([0-9]*) minutes, and ([0-9]*) seconds$"),
 }
 
 -- Session info

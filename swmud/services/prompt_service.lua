@@ -174,7 +174,34 @@ function PromptService.output_loop(line)
     end
 
     -- delays catch information
+    -- Check both the flag (set by input listener) and directly check for delay patterns
+    -- This handles cases where delays command is sent via mud.send() (bypassing input listener)
+    local should_process_delays = false
     if PROMPT_INFO.delays_catch ~= 0 then
+      should_process_delays = true
+    else
+      -- Check if this line matches a delay pattern (even if flag wasn't set)
+      -- This catches delays sent via mud.send() from aliases like 'de'
+      -- Try both line() and raw() to catch the delay pattern
+      if DELAYS_HOOKS then
+        local line_text = line:line()
+        local raw_line = line:raw()
+        for k, v in pairs(DELAYS_HOOKS) do
+          local delay_match = v:match(line_text)
+          if delay_match == nil then
+            delay_match = v:match(raw_line)
+          end
+          if delay_match ~= nil then
+            should_process_delays = true
+            -- Set the flag so subsequent delay lines are also processed
+            PROMPT_INFO.delays_catch = 1
+            break
+          end
+        end
+      end
+    end
+    
+    if should_process_delays then
       -- Try multiple ways to get DelaysParser (handle deferred loading)
       local parser = DelaysParser or _G.DelaysParser
       if parser and parser.process then
