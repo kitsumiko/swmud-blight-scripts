@@ -3,6 +3,16 @@
 
 local PromptService = {}
 
+-- Flag to prevent recursion when processing aliases in GLOBAL_SEND
+-- This is set when mud.input() is called from GLOBAL_SEND to prevent infinite loops
+-- Made global so aliases can check it
+GLOBAL_SEND_PROCESSING = false
+-- Track the command currently being processed to prevent re-processing
+GLOBAL_SEND_CURRENT_COMMAND = ""
+-- Track the last command sent to prevent immediate repetition
+local LAST_SENT_COMMAND = ""
+local LAST_SENT_TIME = 0
+
 function PromptService.process_prompt(matches, line)
   local old_exp = tonumber(STRIP_COLOR(PROMPT_INFO.exp)) or 0
   PROMPT_INFO.hp = matches[2]
@@ -192,6 +202,108 @@ end
 
 function PromptService.input_loop(line)
   local line_text = line:line()
+  local line_raw = line:raw()
+  
+  -- Preprocess no-space aliases that BlightMud doesn't handle well
+  -- These are registered by create_no_space_alias and create_no_space_nested_alias
+  -- Check against all registered patterns and replace if matched
+  -- Use raw() to get the exact input before any processing, strip newlines
+  -- blight.output("[PREPROCESS] Checking NO_SPACE_ALIASES, exists=" .. tostring(NO_SPACE_ALIASES ~= nil) .. ", has_entries=" .. tostring(NO_SPACE_ALIASES and next(NO_SPACE_ALIASES) ~= nil))
+  if NO_SPACE_ALIASES and next(NO_SPACE_ALIASES) then
+    -- Clean the raw input - remove newlines and trim
+    local clean_raw = line_raw:gsub("[\r\n]", ""):match("^%s*(.-)%s*$") or line_raw:gsub("[\r\n]", "")
+    -- blight.output("[PREPROCESS] clean_raw='" .. clean_raw .. "', line_text='" .. line_text .. "'")
+    -- local pattern_count = 0
+    -- for _ in pairs(NO_SPACE_ALIASES) do pattern_count = pattern_count + 1 end
+    -- blight.output("[PREPROCESS] Found " .. pattern_count .. " patterns in NO_SPACE_ALIASES")
+    -- Try matching against cleaned raw input first (most accurate)
+    for pattern, replacement_fn in pairs(NO_SPACE_ALIASES) do
+      -- blight.output("[PREPROCESS] Trying pattern: '" .. pattern .. "'")
+      local capture = clean_raw:match(pattern)
+      -- blight.output("[PREPROCESS] Pattern match result: " .. tostring(capture))
+      if capture then
+        local replacement = replacement_fn(clean_raw, capture)
+        -- blight.output("[PREPROCESS] Match found! Replacement: '" .. replacement .. "'")
+        if replacement then
+          -- Replace the line with empty string and gag it to prevent it from being sent
+          line:replace("")
+          line:gag(1)
+          -- Save the preprocessed command for repeat functionality
+          if PROMPT_INFO.save_raw_command == 1 then
+            PROMPT_INFO.last_repeat_command = replacement
+          end
+          -- Send the replacement command using mud.send() without gag so it shows in terminal
+          -- This sends directly to MUD without triggering input listener again
+          mud.send(replacement)
+          -- Return the line object (required by BlightMud) - it's gagged and empty so won't be sent
+          return line
+        end
+      end
+    end
+    -- If no match on raw, try line_text as fallback
+    if line_text == line:line() then
+      -- blight.output("[PREPROCESS] No match on raw, trying line_text fallback")
+      local clean_text = line_text:gsub("[\r\n]", ""):match("^%s*(.-)%s*$") or line_text:gsub("[\r\n]", "")
+      for pattern, replacement_fn in pairs(NO_SPACE_ALIASES) do
+        local capture = clean_text:match(pattern)
+        if capture then
+          local replacement = replacement_fn(clean_text, capture)
+          -- blight.output("[PREPROCESS] Match found on line_text! Replacement: '" .. replacement .. "'")
+          if replacement then
+            -- Replace the line with empty string and gag it to prevent it from being sent
+            line:replace("")
+            line:gag(1)
+            if PROMPT_INFO.save_raw_command == 1 then
+              PROMPT_INFO.last_repeat_command = replacement
+            end
+            -- Send the replacement command using mud.send() without gag so it shows in terminal
+            -- This sends directly to MUD without triggering input listener again
+            mud.send(replacement)
+            -- Return the line object (required by BlightMud) - it's gagged and empty so won't be sent
+            return line
+          end
+        end
+      end
+    end
+  -- else
+  --   blight.output("[PREPROCESS] NO_SPACE_ALIASES not available or empty")
+  end
+  
+  -- blight.output("[input_loop] Processing line: '" .. line_text .. "', GLOBAL_SEND_PROCESSING=" .. tostring(GLOBAL_SEND_PROCESSING))
+  
+  -- When GLOBAL_SEND_PROCESSING is true, we're processing a command from GLOBAL_SEND
+  -- We need to allow normal alias processing but prevent recursive GLOBAL_SEND calls
+  -- The key is to let the command go through normally but skip state updates that cause loops
+  if GLOBAL_SEND_PROCESSING then
+    -- blight.output("[input_loop] GLOBAL_SEND_PROCESSING is true, processing from GLOBAL_SEND")
+    -- Allow nickname replacement
+    line:replace(NICKNAME_REPLACE(line:raw()))
+    
+    -- Prevent immediate repetition of the same command
+    local processed_cmd = line:replacement() or line_text
+    -- blight.output("[input_loop] Processed command: '" .. processed_cmd .. "', LAST_SENT_COMMAND='" .. LAST_SENT_COMMAND .. "'")
+    local current_time = os.time()
+    if processed_cmd == LAST_SENT_COMMAND and (current_time - LAST_SENT_TIME) < 0.5 then
+      -- blight.output("[input_loop] Same command sent within 0.5s, gagging to prevent repetition")
+      -- Same command sent within 0.5 seconds - gag it to prevent repetition
+      line:gag(1)
+      return line
+    end
+    LAST_SENT_COMMAND = processed_cmd
+    LAST_SENT_TIME = current_time
+    
+    -- Save the processed command (after aliases) instead of raw input
+    -- This happens after aliases have been processed, so line:replacement() contains the final command
+    if line:replacement() ~= "" then
+      PROMPT_INFO.last_repeat_command = line:replacement()
+      -- blight.output("[input_loop] Saved last_repeat_command: '" .. PROMPT_INFO.last_repeat_command .. "'")
+    end
+    
+    -- blight.output("[input_loop] Continuing to normal processing (not returning early)")
+    -- IMPORTANT: Don't return early - let the command continue through normal processing
+    -- so it actually gets sent to the MUD. Just skip the state updates that cause loops.
+    -- Continue to normal processing below, but skip the parts that update state
+  end
   
   -- Handle /reload command
   if line_text == "/reload" then
@@ -226,9 +338,11 @@ function PromptService.input_loop(line)
     DELAYS_CHECKED = false
   end
 
-  -- reset all prompt caches on new line inputs
-  PROMPT_INFO.bsense_catch = 0
-  PROMPT_INFO.blook_catch = 0
+  -- reset all prompt caches on new line inputs (skip if from GLOBAL_SEND to prevent loops)
+  if not GLOBAL_SEND_PROCESSING then
+    PROMPT_INFO.bsense_catch = 0
+    PROMPT_INFO.blook_catch = 0
+  end
 
   --- Repeat Function for last command
   if PROMPT_INFO.save_raw_command then
@@ -237,22 +351,30 @@ function PromptService.input_loop(line)
         line:replace(PROMPT_INFO.last_repeat_command)
       end
     else
-      line:replace(NICKNAME_REPLACE(line:raw()))
+      if not GLOBAL_SEND_PROCESSING then
+        -- Only do nickname replacement if not already done above
+        line:replace(NICKNAME_REPLACE(line:raw()))
+      end
     end
   end
   
-  PROMPT_INFO.last_command_time = os.time()
-  PROMPT_INFO.last_command = line:line()
-  if line:line() ~= "" and line:replacement() ~= "" then
-    if PROMPT_INFO.save_raw_command == 1 then
-      PROMPT_INFO.last_repeat_command = line:raw()
+  -- Skip state updates if from GLOBAL_SEND to prevent loops
+  if not GLOBAL_SEND_PROCESSING then
+    PROMPT_INFO.last_command_time = os.time()
+    PROMPT_INFO.last_command = line:line()
+    if line:line() ~= "" and line:replacement() ~= "" then
+      if PROMPT_INFO.save_raw_command == 1 then
+        -- Save the processed command (after aliases) instead of raw input
+        -- line:replacement() contains the final command that will be sent after alias processing
+        PROMPT_INFO.last_repeat_command = line:replacement()
+      end
+      if line:line() == " " then
+        PROMPT_INFO.last_repeat_command = line:replacement()
+      end
     end
-    if line:line() == " " then
-      PROMPT_INFO.last_repeat_command = line:line()
-    end
+    PROMPT_INFO.last_autosave = os.time()
+    PROMPT_INFO.save_raw_command = 1
   end
-  PROMPT_INFO.last_autosave = os.time()
-  PROMPT_INFO.save_raw_command = 1
   return line
 end
 
@@ -260,19 +382,76 @@ function GLOBAL_SEND(cur_string, suppressReflect)
   if suppressReflect == nil then
     suppressReflect = false
   end
+  
+  -- blight.output("[GLOBAL_SEND] Called with: '" .. cur_string .. "', suppressReflect=" .. tostring(suppressReflect) .. ", GLOBAL_SEND_PROCESSING=" .. tostring(GLOBAL_SEND_PROCESSING))
+  
+  -- Prevent infinite recursion - if we're already processing, send directly
+  if GLOBAL_SEND_PROCESSING then
+    -- blight.output("[GLOBAL_SEND] Already processing, sending directly with mud.send()")
+    mud.send(cur_string, {gag = suppressReflect,})
+    return
+  end
+  
   PROMPT_INFO.delays_catch = 0
 
   local test_string = NICKNAME_REPLACE(cur_string)
   if cur_string == "" then
     PROMPT_INFO.save_raw_command = 0
   else
-    mud.send(cur_string, {gag = suppressReflect,})
-    PROMPT_INFO.last_repeat_command = cur_string
+    -- Process nicknames first
+    local processed_cmd = NICKNAME_REPLACE(cur_string)
+    -- blight.output("[GLOBAL_SEND] Processed command (after nicknames): '" .. processed_cmd .. "'")
+    
+    -- Check if we're already processing this exact command (prevents infinite loops)
+    if GLOBAL_SEND_PROCESSING and GLOBAL_SEND_CURRENT_COMMAND == processed_cmd then
+      -- blight.output("[GLOBAL_SEND] Already processing same command, sending directly to break loop")
+      -- Already processing this exact command, send directly to break the loop
+      mud.send(processed_cmd, {gag = suppressReflect,})
+      return
+    end
+    
+    -- Set flag and track current command BEFORE calling mud.input() so aliases can check it
+    -- blight.output("[GLOBAL_SEND] Setting GLOBAL_SEND_PROCESSING=true, GLOBAL_SEND_CURRENT_COMMAND='" .. processed_cmd .. "'")
+    GLOBAL_SEND_PROCESSING = true
+    GLOBAL_SEND_CURRENT_COMMAND = processed_cmd
+    
+    -- Use mud.input() which will trigger aliases through the normal input pipeline
+    -- The flag is set so that if aliases match again, they'll send directly instead of calling GLOBAL_SEND
+    -- Use pcall to ensure flag is reset even if there's an error
+    -- blight.output("[GLOBAL_SEND] Calling mud.input('" .. processed_cmd .. "')")
+    local success, err = pcall(function()
+      mud.input(processed_cmd)
+    end)
+    
+    -- blight.output("[GLOBAL_SEND] mud.input() returned, success=" .. tostring(success))
+    
+    -- Always reset flag, even if there was an error
+    -- blight.output("[GLOBAL_SEND] Resetting flags")
+    GLOBAL_SEND_PROCESSING = false
+    GLOBAL_SEND_CURRENT_COMMAND = ""
+    
+    if not success then
+      -- blight.output("[GLOBAL_SEND] Error occurred, falling back to mud.send()")
+      -- If there was an error, fall back to mud.send()
+      mud.send(processed_cmd, {gag = suppressReflect,})
+      -- On error, save the original command since we can't get the processed version
+      PROMPT_INFO.last_repeat_command = processed_cmd
+    end
+    
+    -- Save the processed command (will be updated by input listener if mud.input() succeeded)
+    PROMPT_INFO.last_repeat_command = processed_cmd
     PROMPT_INFO.save_raw_command = 0
   end
   if cur_string == " " then
-    mud.send(cur_string, {gag = suppressReflect,})
-    PROMPT_INFO.last_repeat_command = cur_string
+    GLOBAL_SEND_PROCESSING = true
+    local success, err = pcall(function()
+      mud.input(cur_string)
+    end)
+    GLOBAL_SEND_PROCESSING = false
+    if not success then
+      mud.send(cur_string, {gag = suppressReflect,})
+      PROMPT_INFO.last_repeat_command = cur_string
+    end
     PROMPT_INFO.save_raw_command = 0
   end
 end
