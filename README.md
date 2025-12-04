@@ -198,6 +198,31 @@ The system includes a flexible alias system. See `commands/aliases.lua` for exam
 
 Create a `private/020_character.lua` file for character-specific customizations. This file is automatically loaded if present.
 
+**Example character file:**
+
+```lua
+-- Character-specific aliases
+create_standard_alias("p", "trip")
+create_standard_alias("ga", "get all")
+
+-- Direction mapping: map short directions to long forms for display
+-- When you type "e", it will show "> e" then "> east" and send "east"
+DIRECTION_MAP = {
+  n = "north",
+  e = "east",
+  w = "west",
+  s = "south",
+  ne = "northeast",
+  nw = "northwest",
+  se = "southeast",
+  sw = "southwest",
+  d = "down",
+  u = "up"
+}
+```
+
+This allows you to customize how short direction aliases (like `e`, `w`, `n`, `s`) are expanded to their long forms (like `east`, `west`, `north`, `south`) for display in the terminal.
+
 ## Configuration
 
 Main configuration is in `swmud/core/config.lua`:
