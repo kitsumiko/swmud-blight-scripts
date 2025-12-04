@@ -218,8 +218,23 @@ function PromptService.output_loop(line)
     end
 
     -- self contained processes
-    if RoomParser and RoomParser.process_droid then
-      RoomParser.process_droid(line)
+    -- Try multiple ways to get RoomParser (handle deferred loading)
+    local parser = RoomParser or _G.RoomParser
+    if parser and parser.process_droid then
+      parser.process_droid(line)
+    -- else
+    --   -- Only log occasionally to avoid spam (every 100th call)
+    --   if not (PROMPT_INFO.droid_parser_check_count) then
+    --     PROMPT_INFO.droid_parser_check_count = 0
+    --   end
+    --   PROMPT_INFO.droid_parser_check_count = PROMPT_INFO.droid_parser_check_count + 1
+    --   if PROMPT_INFO.droid_parser_check_count == 1 or PROMPT_INFO.droid_parser_check_count % 100 == 0 then
+    --     if not parser then
+    --       blight.output("[DROID_PARSER] RoomParser not available (check #" .. PROMPT_INFO.droid_parser_check_count .. ")")
+    --     elseif not parser.process_droid then
+    --       blight.output("[DROID_PARSER] RoomParser.process_droid not available (check #" .. PROMPT_INFO.droid_parser_check_count .. ")")
+    --     end
+    --   end
     end
   end
   PROMPT_INFO.prev_line = line:line()
