@@ -126,12 +126,14 @@ end
 
 function DelaysParser.process(line)
   local found_delay = false
+  -- Use line() to get the processed line text for matching
+  local line_text = line:line()
   for k,v in pairs(DELAYS_HOOKS) do
-    local delay_match = v:match(line:line())
+    local delay_match = v:match(line_text)
     if delay_match ~= nil then
       found_delay = true
       local table_key = delay_match[2]
-      local time_diff = get_time_diff(delay_match, line:line())
+      local time_diff = get_time_diff(delay_match, line_text)
       if SET_VALUE_CONTAINS(DELAYS_REMAP, delay_match[2]) then
         table_key = SET_REVERSE_LOOKUP(DELAYS_REMAP, delay_match[2])
         update_skill_table(table_key, time_diff)
