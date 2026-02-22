@@ -198,6 +198,15 @@ function DPRCalculator.calc_battle_stats()
   blight.output(C_BYELLOW .. "Target: " .. PROMPT_INFO.last_kill .. C_RESET)
   blight.output(C_BYELLOW .. "Damage: " .. tostring(PROMPT_INFO.last_total_damage) .. C_RESET .. STATUS_SEP ..C_BYELLOW .. "DPR: ".. PROMPT_INFO.total_dpr .. C_RESET)
   blight.output(C_BYELLOW .. "eDamage: " .. tostring(PROMPT_INFO.last_total_edamage) .. C_RESET .. STATUS_SEP ..C_BYELLOW .. "eDPR: " .. PROMPT_INFO.edpr .. C_RESET)
+  if PROMPT_INFO.last_damage_taken and PROMPT_INFO.last_damage_taken > 0 then
+    blight.output(C_BYELLOW .. "Damage taken: " .. tostring(PROMPT_INFO.last_damage_taken) .. C_RESET)
+  end
+  if PROMPT_INFO.last_force_deflections and PROMPT_INFO.last_force_deflections > 0 then
+    blight.output(C_BYELLOW .. "Force deflections: " .. tostring(PROMPT_INFO.last_force_deflections) .. C_RESET)
+  end
+  if WEAPON_SKILL_INFO and WEAPON_SKILL_INFO.last_weapon ~= "" and WEAPON_SKILL_INFO.last_pct and WEAPON_SKILL_INFO.last_pct > 0 then
+    blight.output(C_BYELLOW .. "Weapon skill: " .. WEAPON_SKILL_INFO.last_weapon .. " (" .. tostring(WEAPON_SKILL_INFO.last_pct) .. "%)" .. C_RESET)
+  end
   local exp_diff = tostring(tonumber(PROMPT_INFO.exp) - tonumber(TARGET_INFO.target_start_xp))
   local combat_diff = os.difftime(PROMPT_INFO.last_kill_ts, TARGET_INFO.start_combat_ts) + 4
   local exp_per_sec = math.floor(exp_diff / combat_diff)
