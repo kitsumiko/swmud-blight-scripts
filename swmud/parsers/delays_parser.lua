@@ -132,17 +132,23 @@ function DelaysParser.process(line)
     local delay_match = v:match(line_text)
     if delay_match ~= nil then
       found_delay = true
-      local table_key = delay_match[2]
+      -- Trim the skill name to handle any extra spaces
+      local skill_name = TRIM_STRING(delay_match[2])
+      local table_key = skill_name
       local time_diff = get_time_diff(delay_match, line_text)
-      if SET_VALUE_CONTAINS(DELAYS_REMAP, delay_match[2]) then
-        table_key = SET_REVERSE_LOOKUP(DELAYS_REMAP, delay_match[2])
+      local remapped = false
+      if SET_VALUE_CONTAINS(DELAYS_REMAP, skill_name) then
+        table_key = SET_REVERSE_LOOKUP(DELAYS_REMAP, skill_name)
         update_skill_table(table_key, time_diff)
+        remapped = true
       end
-      if SET_VALUE_CONTAINS(DELAYS_REMAP2, delay_match[2]) then
-        table_key = SET_REVERSE_LOOKUP(DELAYS_REMAP2, delay_match[2])
+      if SET_VALUE_CONTAINS(DELAYS_REMAP2, skill_name) then
+        table_key = SET_REVERSE_LOOKUP(DELAYS_REMAP2, skill_name)
         update_skill_table(table_key, time_diff)
+        remapped = true
       end
-      if rematch_caught == nil then
+      -- Only update with original key if not remapped and rematch_caught is nil
+      if not remapped and rematch_caught == nil then
         update_skill_table(table_key, time_diff)
       end
     end

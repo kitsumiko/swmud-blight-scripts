@@ -13,6 +13,14 @@ trigger.add("^hp: ([^ ]*)/([^ ]*) \\(([^ ]*)\\)([ ]*)", {}, function (m)
   PROMPT_INFO.hp_max = m[3]
 end)
 
+-- Force deflection (You feel the Force guide you, and you maneuver...)
+if COMBAT_EXTRAS then
+  trigger.add("^You feel the Force guide you", {}, function (m)
+    COMBAT_EXTRAS.force_deflections_combat = COMBAT_EXTRAS.force_deflections_combat + 1
+    COMBAT_EXTRAS.force_deflections_session = COMBAT_EXTRAS.force_deflections_session + 1
+  end)
+end
+
 -- autosaving timestamp
 trigger.add("^Autosaving.", {gag = 1,}, function (m)
   blight.output(C_BYELLOW .. "Autosaving - " .. os.date("%c") .. C_RESET)

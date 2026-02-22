@@ -88,7 +88,20 @@ function StatusRenderer.render()
       vitals_line = vitals_line .. exp_display .. STATUS_SEP_SAFE
       
       vitals_line = vitals_line .. "$: " .. PROMPT_INFO.credits .. STATUS_SEP_SAFE
-      vitals_line = vitals_line .. "A: " .. PROMPT_INFO.align_team .. "/" .. PROMPT_INFO.align_jedi .. STATUS_SEP_SAFE
+      local align_str = "A: " .. PROMPT_INFO.align_team .. "/" .. PROMPT_INFO.align_jedi
+      if ALIGNMENT_INFO and ALIGNMENT_INFO.align_team_session_start ~= nil then
+        local at = tonumber(STRIP_COLOR(PROMPT_INFO.align_team)) or 0
+        local aj = tonumber(STRIP_COLOR(PROMPT_INFO.align_jedi)) or 0
+        local d_t = at - ALIGNMENT_INFO.align_team_session_start
+        local d_j = aj - ALIGNMENT_INFO.align_jedi_session_start
+        if d_t ~= 0 or d_j ~= 0 then
+          local delta_str = ""
+          if d_t ~= 0 then delta_str = "T" .. (d_t > 0 and "+" or "") .. tostring(d_t) end
+          if d_j ~= 0 then delta_str = delta_str .. (delta_str ~= "" and " " or "") .. "J" .. (d_j > 0 and "+" or "") .. tostring(d_j) end
+          align_str = align_str .. " (" .. delta_str .. ")"
+        end
+      end
+      vitals_line = vitals_line .. align_str .. STATUS_SEP_SAFE
       vitals_line = vitals_line .. "Sps: " .. PROMPT_INFO.sp .. "/" .. PROMPT_INFO.sp_max .. STATUS_SEP_SAFE
       vitals_line = vitals_line .. "L: " .. CHAR_DATA.character_levels
     else
