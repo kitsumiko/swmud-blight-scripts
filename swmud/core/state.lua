@@ -78,6 +78,8 @@ State.prompt = {
   last_total_edamage = "",
   total_rounds = "",
   last_total_rounds = "",
+  last_force_deflections = 0,
+  last_damage_taken = 0,
   hp_length = 0,
   thp_length = 0,
   guilds = {"Jedi", "Mercenary", "Pilot", "Scientist", "Smuggler", "Diplomat", "Bounty Hunter", "Slicer", "Assassin", "Merchant", "Scout",},
@@ -142,6 +144,27 @@ State.delays_hooks = {
 -- Session info
 State.session = {
   session_start = os.time(),
+}
+
+-- Weapon skill progress (You feel better at using X. (Y%))
+State.weapon_skill = {
+  last_weapon = "",
+  last_pct = 0,
+  session_gains = {},  -- weapon name -> list of pct values this session
+}
+
+-- Combat extras (damage taken, Force deflections)
+State.combat_extras = {
+  force_deflections_combat = 0,   -- deflections in current combat (reset on kill)
+  force_deflections_session = 0,
+}
+
+-- Alignment tracking (for session delta display)
+State.alignment = {
+  align_team_prev = nil,
+  align_jedi_prev = nil,
+  align_team_session_start = nil,
+  align_jedi_session_start = nil,
 }
 
 -- Experience table
@@ -209,6 +232,9 @@ SKILL_STATUS_LEN = State.skills.status_len
 DELAYS_CHECKED = State.delays_checked
 EXP_TRACKER_DATA = State.exp_tracker_data
 ROOM_TRACKER_DATA = State.room_tracker_data
+WEAPON_SKILL_INFO = State.weapon_skill
+COMBAT_EXTRAS = State.combat_extras
+ALIGNMENT_INFO = State.alignment
 
 return State
 

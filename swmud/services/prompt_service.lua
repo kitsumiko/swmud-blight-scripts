@@ -26,6 +26,18 @@ function PromptService.process_prompt(matches, line)
   PROMPT_INFO.sp_max = matches[10]
   PROMPT_INFO.drug = matches[11]
   PROMPT_INFO.char_active = 1
+
+  -- Alignment session tracking (for status display)
+  if ALIGNMENT_INFO then
+    local at = tonumber(STRIP_COLOR(matches[6])) or 0
+    local aj = tonumber(STRIP_COLOR(matches[7])) or 0
+    if ALIGNMENT_INFO.align_team_session_start == nil then
+      ALIGNMENT_INFO.align_team_session_start = at
+      ALIGNMENT_INFO.align_jedi_session_start = aj
+    end
+    ALIGNMENT_INFO.align_team_prev = at
+    ALIGNMENT_INFO.align_jedi_prev = aj
+  end
   
   -- Track experience changes
   local new_exp = tonumber(STRIP_COLOR(PROMPT_INFO.exp)) or 0

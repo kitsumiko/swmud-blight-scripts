@@ -55,6 +55,17 @@ trigger.add("^"..P_STR.." staggers and falls to the ground\\.\\.\\. dead\\.", {}
       PROMPT_INFO.last_total_rounds = PROMPT_INFO.total_rounds
     end
   end
+  -- Save Force deflections for battle summary, then reset for next fight
+  if COMBAT_EXTRAS then
+    PROMPT_INFO.last_force_deflections = COMBAT_EXTRAS.force_deflections_combat
+    COMBAT_EXTRAS.force_deflections_combat = 0
+  end
+  -- Damage we took from this target (for battle summary)
+  if SET_CONTAINS(DPR_INFO, "you") and SET_CONTAINS(DPR_INFO["you"], m[2]) and DPR_INFO["you"][m[2]]["damage"] then
+    PROMPT_INFO.last_damage_taken = DPR_INFO["you"][m[2]]["damage"]
+  else
+    PROMPT_INFO.last_damage_taken = 0
+  end
   mud.send("", {gag=1,})
   tasks.spawn(calc_battle_stats)
 end)
