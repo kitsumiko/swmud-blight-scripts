@@ -1,0 +1,40 @@
+---
+description: Version management for SWmud scripts
+alwaysApply: true
+---
+
+# Script Versioning
+
+The version identifier is stored in `100_version.txt` at the repository root.
+
+## When to Update Version
+
+Update the version when:
+- Adding new features or functionality
+- Fixing bugs
+- Making breaking changes to existing behavior
+
+## How to Update
+
+1. Edit `100_version.txt` with the new version number
+2. Use semantic versioning format: `MAJOR.MINOR.PATCH`
+
+## Version Format
+
+- **MAJOR** (X.0.0): Breaking changes or major rewrites
+- **MINOR** (1.X.0): New features, parsers, services, or commands
+- **PATCH** (1.0.X): Bug fixes, small tweaks, documentation
+
+## Examples
+
+```
+1.0.0 → 1.0.1  # Fixed damage parser regex bug
+1.0.1 → 1.1.0  # Added weapon skill parser
+1.1.0 → 2.0.0  # Restructured state management (breaking)
+```
+
+## Location
+
+- **File**: `100_version.txt` (repository root)
+- **Loaded by**: `swmud/core/init.lua` at startup
+- **Container path**: `~/.config/blightmud/100_version.txt`
