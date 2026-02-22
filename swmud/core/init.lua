@@ -87,6 +87,9 @@ function script_load()
   script.load('~/.config/blightmud/swmud/services/status_updater.lua')
   script.load('~/.config/blightmud/swmud/services/triggers.lua')
   
+  -- Load parsers that register triggers (after state and triggers)
+  script.load('~/.config/blightmud/swmud/parsers/weapon_skill_parser.lua')
+  
   -- Load UI
   script.load('~/.config/blightmud/swmud/ui/status_renderer.lua')
   
