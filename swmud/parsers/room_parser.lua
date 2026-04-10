@@ -2,13 +2,45 @@
 
 local RoomParser = {}
 
+-- Droid type prefixes (must mirror the alternation in PROMPT_INFO.droid_match
+-- defined in core/state.lua). Used to filter follow/summon events so non-droid
+-- names never get added to ROOM_TABLE["my_droids"].
+local DROID_PREFIXES = {
+  "C3","T5","SLR","GNK","B1","RX","G2","MLR","R4P","NR","FX","IF",
+  "IG","RA","XLR","BLX","T7","C5","S9E","B2","DD","ALR","MSE","OOM",
+  "R8","2-1C","HK","FA-5","X7",
+}
+
+local function get_droid_prefix(name)
+  if not name then return nil end
+  for _, prefix in ipairs(DROID_PREFIXES) do
+    if name:sub(1, #prefix) == prefix then
+      return prefix
+    end
+  end
+  return nil
+end
+
+local function add_if_droid(name)
+  if get_droid_prefix(name) then
+    if not ROOM_TABLE["my_droids"] then ROOM_TABLE["my_droids"] = {} end
+    ADD_TO_SET(ROOM_TABLE["my_droids"], name)
+  end
+end
+
+local function remove_droid(name)
+  if ROOM_TABLE["my_droids"] then ROOM_TABLE["my_droids"][name] = nil end
+  if ROOM_TABLE["droid_status"] then ROOM_TABLE["droid_status"][name] = nil end
+end
+
 function RoomParser.process_droid(line)
   -- blight.output("[DROID_PARSER] process_droid called with line: '" .. line:line() .. "'")
   local room_match = PROMPT_INFO.room_match:match(line:line())
   if room_match ~= nil then
-    -- blight.output("[DROID_PARSER] Room match found, clearing droids")
-    ROOM_TABLE["my_droids"] = {}
-    ROOM_TABLE["droid_status"] = {}
+    -- Note: we intentionally do NOT clear ROOM_TABLE["my_droids"] here.
+    -- Droids that belong to us follow us across rooms, so wiping the set on
+    -- every room change makes the alias check unreliable. We rely on the
+    -- "You have lost X." event below to remove droids that leave us.
     -- Record exit information
     if record_room_entry and room_match[2] then
       local exits_str = room_match[2]
@@ -59,6 +91,27 @@ function RoomParser.process_droid(line)
     --   if string.find(line_text, "HK") or string.find(line_text, "T5") or string.find(line_text, "C3") or string.find(line_text, "Yours") or string.find(line_text, "Listening") then
     --     blight.output("[DROID_PARSER] No match for line: '" .. line_text .. "' (raw: '" .. raw_text .. "')")
     --   end
+    end
+
+    -- Droid ownership events. Only match signals that confirm (or strongly
+    -- imply) the droid is OURS. We deliberately do NOT match "X enters."
+    -- because that fires for any droid walking into the room, including
+    -- droids owned by other players.
+    local function try_event(text)
+      local n
+      -- Unique to our droids responding to our `droids summon` command:
+      n = text:match("^(%S+) zips into the room and beeps to inform you of its presence%.$")
+      if n then add_if_droid(n); return true end
+      -- Our droid starts following us (filtered by droid prefix in add_if_droid):
+      n = text:match("^(%S+) is now following you%.$")
+      if n then add_if_droid(n); return true end
+      -- Removal: lost the droid (destroyed, dismissed, out of range, etc.)
+      n = text:match("^You have lost (%S+)%.$")
+      if n then remove_droid(n); return true end
+      return false
+    end
+    if not try_event(line_text) then
+      try_event(raw_text)
     end
   end
 end
