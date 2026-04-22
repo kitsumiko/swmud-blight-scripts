@@ -21,6 +21,8 @@ create_skill("surprise", "^You (surprise) your attacker and gain extra attacks\\
 create_skill("change", "^You (change your appearance.) You now look like ", "^You (lose control) of the Force and fail\\.", 5, nil, 1)
 create_skill("compel", "^You (use your mastery of the Force) to compel", "^You (fail to use your mastery of the Force) to compel", 30)
 create_skill("repair", "^You (repair) .*\\.", "^You (fail to repair) .*\\.", 2, nil)
+create_skill("refurbish", nil, nil, 2, nil)
+create_skill("recalibrate", "^You plug into .* systems, and execute a recalibration sequence\\.", "^You fail to execute a recalibration program on", 4, nil)
 create_skill("anger", "^The (pain of your injuries seems to vanish) as you ", "^You (fail to focus) on your anger\\.", 2, nil)
 create_skill("disable", "^You (search for your enemy.s weakest point) and take a calculated swing", "^You (take a wild swing) at .*, but miss completely")
 create_skill("absorb", "^You (concentrate on absorbing) energy directed at you\\." , "^You (fail to achieve) the proper concentration required\\.", 150, nil)
