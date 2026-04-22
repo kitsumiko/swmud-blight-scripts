@@ -8,7 +8,7 @@
 local IsardStationTracker = {}
 local ISARD_STATION_COOLDOWN = 79200  -- 22 hours
 
-trigger.add("^The Imperial officer appears on the screen again\\. He listens to your report with worry etched across his face\\.", {}, function ()
+trigger.add("^The Imperial officer appears on the screen again\\.", {}, function ()
   if SKILL_TABLE_WIN == nil or SKILL_DELAY_TABLE_WIN == nil then return end
   SKILL_TABLE_WIN["isard_station"] = os.time() + ISARD_STATION_COOLDOWN
   SKILL_DELAY_TABLE_WIN["isard_station"] = ISARD_STATION_COOLDOWN
