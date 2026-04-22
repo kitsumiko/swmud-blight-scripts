@@ -67,6 +67,7 @@ function script_load()
   -- Load skill tracker (defines DELAYS_REMAP and skill functions)
   script.load('~/.config/blightmud/swmud/services/skill_tracker.lua')
   script.load('~/.config/blightmud/swmud/services/skill_definitions.lua')
+  script.load('~/.config/blightmud/swmud/services/droid_cooldown_tracker.lua')
   
   -- Load combat models (defines tier_lookup, BSENSE data, target functions)
   script.load('~/.config/blightmud/swmud/models/combat.lua')
