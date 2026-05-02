@@ -95,7 +95,7 @@ create_skill("nanoinject", nil, "^You attempt to deliver the nanites, but fail\\
 create_skill("damage_nanites", "^You (thrust the nanoinjector into) .* flesh and unload a swarm of nanites into its bloodstream\\.", nil, 4, nil)
 create_skill("heal", "^You heal yourself\\.", "You fail to heal yourself\\.", 1, nil, 1)
 create_skill("presist", "^You remove some of the drugs from your system\\.", "^You reach out with the Force to cleanse yourself, but your concentration is broken\\.", 2, nil, 1)
-create_skill("hack_bank", nil, nil, 86400, 86400)
+create_skill("hack_bank", nil, nil, 86400)
 create_skill("isard_station", nil, nil, 79200)
 create_skill("first", "^You perform first aid on .*\\.", "^Why are you trying to heal someone who doesn't need healing%?", 2, nil)
 
