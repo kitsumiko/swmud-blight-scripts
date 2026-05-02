@@ -12,6 +12,7 @@ trigger.add("^You have managed to funnel .* credits into your account\\.", {}, f
   if SKILL_TABLE_WIN == nil or SKILL_DELAY_TABLE_WIN == nil then return end
   SKILL_TABLE_WIN["hack_bank"] = os.time() + HACK_BANK_COOLDOWN
   SKILL_DELAY_TABLE_WIN["hack_bank"] = HACK_BANK_COOLDOWN
+  if SKILL_TABLE_FAIL then SKILL_TABLE_FAIL["hack_bank"] = nil end
 end)
 
 trigger.add("^BANK> You fail to hack the bank\\.", {}, function (m, line)
@@ -21,6 +22,7 @@ end)
 
 trigger.add("^You can use hack bank again\\.", {}, function ()
   if SKILL_TABLE_WIN then SKILL_TABLE_WIN["hack_bank"] = nil end
+  if SKILL_TABLE_FAIL then SKILL_TABLE_FAIL["hack_bank"] = nil end
 end)
 
 HackBankTracker = HackBankTracker
