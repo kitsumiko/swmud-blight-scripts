@@ -70,6 +70,12 @@ create_skill("overhaul", "^(You spend a good hour of your day fixing every probl
 create_skill("dmodify", nil, "^You (try to modify) the droid, but fail", 150, nil)
 create_skill("dmodify", nil, "^You try to modify .*, but fail", 150, nil)
 create_skill("cureall", "You (perform cureall surgery)", "^You try, but (fail to perform cureall surgery)", 150, nil)
+-- High Mortal cybernetics surgery. Per `panic cybernetics`: 30-minute surgeon
+-- cooldown ("cybernetics"), 2-hour target cooldown. The success line is the
+-- only sedation message we see when the implant takes (no separate "you feel
+-- capable again"); failure messages aren't visible in current logs, so leave
+-- regex_fail nil for now and add it when one shows up.
+create_skill("cybernetics", "^You (solder a few extra bits onto your cybernetic implant)\\. Almost as an afterthought, you wave at the medical droid to sedate you\\.", nil, 30*60, nil)
 create_skill("ionshield", "(You shield the circuitry)", "^(You fail to shield the circuitry)", 3, nil)
 create_skill("trip", "^You (trip) .* and stun your victim with a clever maneuver\\.", "^You (try to trip your opponent and miss), then stagger around trying to regain your balance\\.")
 create_skill("trip", "^You trip .* and stun .* with a clever maneuver\\.", "^You try to trip .*, then stagger around trying to regain your balance\\.")
@@ -84,12 +90,15 @@ create_skill("fury", "^(You work yourself into a towering fury), intent on layin
 create_skill("fade", "^You (fade) into the shadows\\.", "^You (attempt to fade into the background), but end up drawing even more attention to yourself\\.")
 create_skill("program", "^You remove the .* desire to speak out\\.", "^You fail to program the droid\\.")
 create_skill("linehack", "^You crack into the line\\.", "^You fail to hack the line with the grace of a rancor\\.", 20, nil)
+-- nanoheal shares the "cureall surgery or nanoheal" cooldown bucket with cureall
+-- (see SKILL_SHARED_COOLDOWNS). Keep this length in sync with the cureall
+-- create_skill call above (150s) so the propagated future-time matches.
 create_skill("nanoheal", "^You run the parts through a compartment on your slicertool and it synthesizes some healing nanites. You startup the programming script and before you know it, your healing nanites are ready to go. The dust-like bots disappear through your skin and you start to feel better\\.",
                         "^You run the parts through a compartment on your slicertool and it synthesizes some healing nanites. As you start the programming script, something goes wrong and the dust-like nanites fall harmlessly to the ground\\.",
-                        10*60, nil)
-create_skill("nanoheal", nil, "^As you run the parts through a compartment on your slicertool, something goes badly wrong and it spits out metallic dust\\.",10*60, nil)
-create_skill("nanoheal", nil, "^Your slicertool successfully synthesizes the tiny bots, but you accidentally breathe a bit too hard blowing the tiny dust-like droids into oblivion\\.",10*60, nil)
-create_skill("nanoheal", nil, "^Your slicertool seems to have crashed when attempting to synthesize the healing nanites. Must be a glitch in the software\\.", 10*60, nil)
+                        150, nil)
+create_skill("nanoheal", nil, "^As you run the parts through a compartment on your slicertool, something goes badly wrong and it spits out metallic dust\\.", 150, nil)
+create_skill("nanoheal", nil, "^Your slicertool successfully synthesizes the tiny bots, but you accidentally breathe a bit too hard blowing the tiny dust-like droids into oblivion\\.", 150, nil)
+create_skill("nanoheal", nil, "^Your slicertool seems to have crashed when attempting to synthesize the healing nanites. Must be a glitch in the software\\.", 150, nil)
 create_skill("healing_nanites", "^You thrust the nanoinjector into your thigh and release a swarm of nanites into your bloodstream\\.", nil, 120, nil)
 create_skill("nanoinject", nil, "^You attempt to deliver the nanites, but fail\\.", 30, nil)
 create_skill("damage_nanites", "^You (thrust the nanoinjector into) .* flesh and unload a swarm of nanites into its bloodstream\\.", nil, 4, nil)

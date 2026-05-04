@@ -120,7 +120,13 @@ local function update_skill_table(table_key, time_diff)
     end
     
     -- Store the absolute time when the skill will be ready (future time)
-    SKILL_TABLE_WIN[table_key] = current_time + remaining_time
+    local future_time = current_time + remaining_time
+    SKILL_TABLE_WIN[table_key] = future_time
+    -- Mirror to peers that share this in-game cooldown bucket (e.g. cureall<->nanoheal),
+    -- so the De: bar reflects the same countdown for both halves of the pair.
+    if PROPAGATE_SHARED_COOLDOWN then
+      PROPAGATE_SHARED_COOLDOWN(table_key, future_time)
+    end
   end
 end
 
