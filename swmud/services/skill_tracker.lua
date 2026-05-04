@@ -2,6 +2,24 @@
 
 local SkillTracker = {}
 
+-- Skills that share an in-game cooldown bucket. Triggering or learning the
+-- remaining cooldown of any one of them propagates the same future ready-time
+-- to all peers, so the De: bar shows a single accurate countdown rather than
+-- losing one half of the pair. Keys are skill table names; values are arrays
+-- of peer skill names that share the bucket.
+SKILL_SHARED_COOLDOWNS = {
+  cureall = {"nanoheal"},
+  nanoheal = {"cureall"},
+}
+
+function SkillTracker.propagate_shared_cooldown(sk_name, future_time)
+  local peers = SKILL_SHARED_COOLDOWNS and SKILL_SHARED_COOLDOWNS[sk_name]
+  if peers == nil then return end
+  for _, peer in ipairs(peers) do
+    SKILL_TABLE_WIN[peer] = future_time
+  end
+end
+
 function SkillTracker.create_skill(sk_name, regex_win, regex_fail, sk_delay_win, sk_delay_fail, check_last_command, regex_miss)
   SKILL_TABLE_WIN[sk_name] = nil
   SKILL_TABLE_FAIL[sk_name] = nil
@@ -25,7 +43,11 @@ function SkillTracker.create_skill(sk_name, regex_win, regex_fail, sk_delay_win,
         if not SET_CONTAINS(SKILL_STATUS_TABLE, sk_name) then
           blight.output("("..C_BGREEN.."SUCCESS"..C_RESET.."): "..sk_name.." - "..line:raw())
         end
-        SKILL_TABLE_WIN[sk_name] = os.time()
+        -- Store the future ready-time so the De: bar shows the cooldown immediately,
+        -- without requiring the user to run `delays`. Matches hack_bank/isard_station pattern.
+        local future_time = os.time() + (SKILL_DELAY_TABLE_WIN[sk_name] or 4)
+        SKILL_TABLE_WIN[sk_name] = future_time
+        SkillTracker.propagate_shared_cooldown(sk_name, future_time)
       end
     end)
   end
@@ -95,6 +117,7 @@ end
 -- Export as globals for backward compatibility
 create_skill = SkillTracker.create_skill
 create_status_skill = SkillTracker.create_status_skill
+PROPAGATE_SHARED_COOLDOWN = SkillTracker.propagate_shared_cooldown
 
 -- Delays reset trigger
 trigger.add("^You have no skills with pending delays\\.", {}, function (m)

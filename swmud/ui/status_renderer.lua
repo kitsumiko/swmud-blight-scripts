@@ -88,12 +88,26 @@ function StatusRenderer.render()
       vitals_line = vitals_line .. exp_display .. STATUS_SEP_SAFE
       
       vitals_line = vitals_line .. "$: " .. PROMPT_INFO.credits .. STATUS_SEP_SAFE
-      local align_str = "A: " .. PROMPT_INFO.align_team .. "/" .. PROMPT_INFO.align_jedi
+      local align_str = "A: " .. ALIGNMENT_COLOR(PROMPT_INFO.align_team) .. "/" .. PROMPT_INFO.align_jedi
       if ALIGNMENT_INFO and ALIGNMENT_INFO.align_team_session_start ~= nil then
         local at = tonumber(STRIP_COLOR(PROMPT_INFO.align_team)) or 0
         local aj = tonumber(STRIP_COLOR(PROMPT_INFO.align_jedi)) or 0
-        local d_t = at - ALIGNMENT_INFO.align_team_session_start
-        local d_j = aj - ALIGNMENT_INFO.align_jedi_session_start
+        -- Team-relative delta: positive = more dedicated to your current team,
+        -- negative = drifting toward the boundary. Using a raw signed
+        -- subtraction was misleading for Imperial / Dark Jedi players, where
+        -- "more team dedication" means a more-negative number — so e.g.
+        -- moving from -41 to -74 (gaining 33 imperial dedication) was being
+        -- displayed as T-33 when it should read T+33.
+        --   Imperial / Dark zone (<= -26): more negative = more dedicated, so flip sign.
+        --   Rebel  / Light zone (>= 26):   more positive = more dedicated, raw delta.
+        --   Neutral zone (-25..25):        no team direction, raw signed delta.
+        local function team_relative_delta(prev, curr)
+          if curr <= -26 then return prev - curr end
+          if curr >= 26 then return curr - prev end
+          return curr - prev
+        end
+        local d_t = team_relative_delta(ALIGNMENT_INFO.align_team_session_start, at)
+        local d_j = team_relative_delta(ALIGNMENT_INFO.align_jedi_session_start, aj)
         if d_t ~= 0 or d_j ~= 0 then
           local delta_str = ""
           if d_t ~= 0 then delta_str = "T" .. (d_t > 0 and "+" or "") .. tostring(d_t) end

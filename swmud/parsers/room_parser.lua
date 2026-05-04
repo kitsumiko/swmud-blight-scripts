@@ -25,12 +25,24 @@ local function add_if_droid(name)
   if get_droid_prefix(name) then
     if not ROOM_TABLE["my_droids"] then ROOM_TABLE["my_droids"] = {} end
     ADD_TO_SET(ROOM_TABLE["my_droids"], name)
+    -- Mirror into the per-room set: follow/summon events imply the droid is
+    -- here with us right now.
+    if not ROOM_TABLE["current_room_droids"] then ROOM_TABLE["current_room_droids"] = {} end
+    ADD_TO_SET(ROOM_TABLE["current_room_droids"], name)
   end
 end
 
 local function remove_droid(name)
   if ROOM_TABLE["my_droids"] then ROOM_TABLE["my_droids"][name] = nil end
   if ROOM_TABLE["droid_status"] then ROOM_TABLE["droid_status"][name] = nil end
+  if ROOM_TABLE["current_room_droids"] then ROOM_TABLE["current_room_droids"][name] = nil end
+end
+
+-- Public hook: clear the per-room droid set. Called when the player moves
+-- (record_exit) or when a new room display starts, so dreg/aliases that act
+-- on "droids in this room" don't see stragglers from a previous room.
+function RoomParser.reset_current_room_droids()
+  ROOM_TABLE["current_room_droids"] = {}
 end
 
 function RoomParser.process_droid(line)
@@ -41,6 +53,10 @@ function RoomParser.process_droid(line)
     -- Droids that belong to us follow us across rooms, so wiping the set on
     -- every room change makes the alias check unreliable. We rely on the
     -- "You have lost X." event below to remove droids that leave us.
+    -- However, we DO reset the per-room droid set here: this MUD prints the
+    -- exits line BEFORE the room contents, so any droid line that follows
+    -- will repopulate it for the new room.
+    RoomParser.reset_current_room_droids()
     -- Record exit information
     if record_room_entry and room_match[2] then
       local exits_str = room_match[2]
@@ -70,6 +86,13 @@ function RoomParser.process_droid(line)
       -- blight.output("[DROID_PARSER] Matched droid: '" .. droid_name .. "' from line: '" .. line_text .. "'")
       -- blight.output("[DROID_PARSER] Match groups: [2]='" .. tostring(droid_match[2]) .. "', [3]='" .. tostring(droid_match[3]) .. "', [5]='" .. tostring(droid_match[5]) .. "'")
       ADD_TO_SET(ROOM_TABLE["my_droids"], droid_name)
+      -- Also track this droid as physically present in the current room. This
+      -- set is reset on movement / new room display, so dreg can register only
+      -- the droids actually here with us.
+      if not ROOM_TABLE["current_room_droids"] then
+        ROOM_TABLE["current_room_droids"] = {}
+      end
+      ADD_TO_SET(ROOM_TABLE["current_room_droids"], droid_name)
       -- Store droid status (Yours or Listening) for registration checking
       if not ROOM_TABLE["droid_status"] then
         ROOM_TABLE["droid_status"] = {}

@@ -68,6 +68,7 @@ function script_load()
   script.load('~/.config/blightmud/swmud/services/skill_tracker.lua')
   script.load('~/.config/blightmud/swmud/services/skill_definitions.lua')
   script.load('~/.config/blightmud/swmud/services/droid_cooldown_tracker.lua')
+  script.load('~/.config/blightmud/swmud/services/droid_construct_helper.lua')
   script.load('~/.config/blightmud/swmud/services/hack_bank_tracker.lua')
   script.load('~/.config/blightmud/swmud/services/isard_station_tracker.lua')
   

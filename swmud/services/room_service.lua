@@ -97,7 +97,14 @@ function RoomService.record_exit(direction)
   if not ROOM_TRACKER_DATA then
     RoomService.init()
   end
-  
+
+  -- Player is leaving the current room: drop the per-room droid snapshot so
+  -- dreg/aliases that act on "droids here" don't reuse stale data from the
+  -- previous room. The new room display will repopulate it.
+  if RoomParser and RoomParser.reset_current_room_droids then
+    RoomParser.reset_current_room_droids()
+  end
+
   local current_time = os.time()
   table.insert(ROOM_TRACKER_DATA.exit_history, {
     direction = direction,
