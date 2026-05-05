@@ -2,8 +2,12 @@
 -- This file defines all the skills that are tracked
 
 -- Status skills (bmed, block retal etc...)
-create_status_skill("block", "^You take up a defensive stance and prepare to block shots\\.", nil, "^You stop blocking shots\\.", 12)
-create_status_skill("retal", "^You take up a defensive stance and prepare to retaliate shots\\.", nil, "^You stop retaliating shots\\.", 12)
+-- block / retal stay up for ~24 seconds in practice (observed start->"stop
+-- retaliating shots" gap in 20260504.23:02:19.log lines 553-607 / 1044-1087).
+-- The previous 12s ttl made the S: bar count to 0 at the halfway point of the
+-- actual buff -- "going 2x too fast".
+create_status_skill("block", "^You take up a defensive stance and prepare to block shots\\.", nil, "^You stop blocking shots\\.", 24)
+create_status_skill("retal", "^You take up a defensive stance and prepare to retaliate shots\\.", nil, "^You stop retaliating shots\\.", 24)
 create_status_skill("bmed", "^You feel your control over the Force increase\\.", "^Your concentration is broken and you can no longer feel the Force\\.", "^You feel your control of the Force decrease a little\\.", 60)
 create_status_skill("no_force", "^Your concentration is broken and you can no longer feel the Force\\.", nil, "^You feel the warmth of the Force surround you again\\.", 16)
 create_status_skill("nanoheal", "^You run the parts through a compartment on your slicertool and it synthesizes some healing nanites. You startup the programming script and before you know it, your healing nanites are ready to go. The dust-like bots disappear through your skin and you start to feel better\\.",
@@ -25,7 +29,10 @@ create_skill("refurbish", nil, nil, 2, nil)
 create_skill("recalibrate", "^You plug into .* systems, and execute a recalibration sequence\\.", "^You fail to execute a recalibration program on", 4, nil)
 create_skill("anger", "^The (pain of your injuries seems to vanish) as you ", "^You (fail to focus) on your anger\\.", 2, nil)
 create_skill("disable", "^You (search for your enemy.s weakest point) and take a calculated swing", "^You (take a wild swing) at .*, but miss completely")
-create_skill("absorb", "^You (concentrate on absorbing) energy directed at you\\." , "^You (fail to achieve) the proper concentration required\\.", 150, nil)
+-- `panic absorb` (Guide entry, captured in 20220705.14:10:24.log) lists
+-- "Cooldown: 5 minutes" for absorb/dissipate energy. The previous 150s value
+-- made the De: bar tick to 0 at the halfway point of the real cooldown.
+create_skill("absorb", "^You (concentrate on absorbing) energy directed at you\\." , "^You (fail to achieve) the proper concentration required\\.", 300, nil)
 create_skill("scloak", "^You (draw the Dark Side) around you to hide your presence\\.", "^You (lose control) of the Force and fail\\.", 2, nil, 1)
 create_skill("subdue", "^You (deftly beat .+ over the head). Before ", "^You (fail to subdue|try to subdue) .+, but m")
 create_skill("subdue", nil, "^(.* still looks quite lively). Maybe .* needs more 'persuasion'?")
