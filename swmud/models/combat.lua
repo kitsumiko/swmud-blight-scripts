@@ -25,6 +25,8 @@ function Combat.reset_target(target_name)
   TARGET_INFO[target_name] = SHALLOW_COPY(BASE_TARGET_INFO)
   TARGET_INFO["target_start_xp"] = PROMPT_INFO.exp
   TARGET_INFO.start_combat_ts = os.time()
+  TARGET_INFO.start_credits = tonumber(STRIP_COLOR(tostring(PROMPT_INFO.credits or 0))) or 0
+  TARGET_INFO.start_hp = tonumber(STRIP_COLOR(tostring(PROMPT_INFO.hp or 0))) or 0
 end
 
 function Combat.init_target(target_name)

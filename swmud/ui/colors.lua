@@ -33,6 +33,31 @@ function Colors.dpr_color(dpr_in)
   return Colors.COLOR_MAP[new_ind] .. tostring(dpr_in) .. C_RESET
 end
 
+-- Format a signed delta with directional arrow + green/red/dim color.
+-- `value` is the difference (current - previous); `lower_is_better` flips the
+-- "improvement" direction for metrics like Combat Time / Damage taken / Rounds.
+-- `baseline` (optional) lets us treat tiny deltas as "≈ same" using a 1% threshold.
+function Colors.delta_color(value, lower_is_better, baseline)
+  local n = tonumber(value) or 0
+  if baseline and baseline ~= 0 and math.abs(n) / math.abs(baseline) < 0.01 then
+    return (C_WHITE or "") .. "(\xe2\x89\x88 same)" .. C_RESET
+  end
+  if n == 0 then
+    return (C_WHITE or "") .. "(\xe2\x89\x88 same)" .. C_RESET
+  end
+  local improving = (n > 0) ~= lower_is_better
+  local arrow
+  if n > 0 then arrow = "\xe2\x96\xb2 +" else arrow = "\xe2\x96\xbc " end
+  local color = improving and (C_BGREEN or C_GREEN or "") or (C_BRED or C_RED or "")
+  local num_str
+  if math.floor(n) == n then
+    num_str = tostring(math.floor(n))
+  else
+    num_str = string.format("%.2f", n)
+  end
+  return color .. arrow .. num_str .. C_RESET
+end
+
 -- Color the team alignment value by proximity to a team-switch threshold.
 -- Ranges per in-game `panic alignment`: Imperial -75..-26, Neutral -25..25, Rebel 26..75.
 function Colors.alignment_color(align_in)
@@ -55,6 +80,7 @@ COLOR_MAP = Colors.COLOR_MAP
 GET_COLOR = Colors.get_color
 DPR_COLOR = Colors.dpr_color
 ALIGNMENT_COLOR = Colors.alignment_color
+DELTA_COLOR = Colors.delta_color
 
 return Colors
 

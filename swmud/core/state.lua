@@ -80,6 +80,14 @@ State.prompt = {
   last_total_rounds = "",
   last_force_deflections = 0,
   last_damage_taken = 0,
+  last_hits = 0,
+  last_misses = 0,
+  last_best_round_damage = 0,
+  last_mob_hp_estimate = 0,
+  last_start_credits = 0,
+  last_start_hp = 0,
+  last_start_combat_ts = 0,
+  last_target_start_xp = 0,
   hp_length = 0,
   thp_length = 0,
   guilds = {"Jedi", "Mercenary", "Pilot", "Scientist", "Smuggler", "Diplomat", "Bounty Hunter", "Slicer", "Assassin", "Merchant", "Scout",},
@@ -104,6 +112,8 @@ State.target = {
   total_health = 0,
   target_pct = 0,
   unrec_damage = 0,
+  start_credits = 0,
+  start_hp = 0,
 }
 
 -- Base target info template
