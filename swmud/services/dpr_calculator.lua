@@ -382,9 +382,9 @@ end
 
 -- ---------------- Comparison row builders ----------------
 
-local function delta(curr_val, prev_val, lower_is_better)
+local function delta(curr_val, prev_val, lower_is_better, unit)
   if prev_val == nil then return "" end
-  return DELTA_COLOR(num(curr_val) - num(prev_val), lower_is_better, num(prev_val))
+  return DELTA_COLOR(num(curr_val) - num(prev_val), lower_is_better, num(prev_val), unit)
 end
 
 -- Rank estimate using best/worst bounds. Returns 0-100 where 100 = best-ever
@@ -455,14 +455,8 @@ function DPRCalculator.calc_battle_stats()
     }
   end
 
-  -- Target row (mob name on left, prev-kill timestamp as the "delta")
-  do
-    local right = ""
-    if prev then
-      right = C_BYELLOW .. "prev kill: " .. os.date("%Y-%m-%d %H:%M:%S", prev.kill_ts) .. C_RESET
-    end
-    add_row("Target", mob, right)
-  end
+  -- Target is rendered separately below (after delta_col is known) so a long
+  -- mob name doesn't inflate value_col_w for every metric row in the table.
 
   add_row("Damage", fmt_int(snap.damage),
           prev and delta(snap.damage, prev.damage, false) or "")
@@ -474,14 +468,16 @@ function DPRCalculator.calc_battle_stats()
           prev and delta(snap.edpr, prev.edpr, true) or "")
 
   if (snap.hits + snap.misses) > 0 then
+    -- No delta on Hit / Miss row — Accuracy below carries the meaningful change
+    -- (a hits-only delta is misleading when only the miss count moved).
     add_row("Hit / Miss",
             tostring(snap.hits) .. " / " .. tostring(snap.misses),
-            (prev and prev.hits ~= nil) and delta(snap.hits, prev.hits, false) or "")
+            "")
     local acc_pct = math.floor(snap.accuracy * 100 + 0.5)
     local acc_delta = ""
     if prev and prev.accuracy ~= nil then
       local prev_acc = math.floor(prev.accuracy * 100 + 0.5)
-      acc_delta = delta(acc_pct, prev_acc, false) .. "%"
+      acc_delta = delta(acc_pct, prev_acc, false, "%")
     end
     add_row("Accuracy", tostring(acc_pct) .. "%", acc_delta)
   end
@@ -530,7 +526,7 @@ function DPRCalculator.calc_battle_stats()
   if snap.weapon_skill ~= "" and snap.weapon_skill_pct > 0 then
     local d = ""
     if prev and prev.weapon_skill == snap.weapon_skill and prev.weapon_skill_pct then
-      d = delta(snap.weapon_skill_pct, prev.weapon_skill_pct, false) .. "%"
+      d = delta(snap.weapon_skill_pct, prev.weapon_skill_pct, false, "%")
     end
     add_row("Weapon skill",
             snap.weapon_skill .. " (" .. tostring(snap.weapon_skill_pct) .. "%)", d)
@@ -578,6 +574,20 @@ function DPRCalculator.calc_battle_stats()
       local right_header = C_BYELLOW .. "##### vs Last Fight (" .. fmt_ago(prev.kill_ts) .. ") #####" .. C_RESET
       local pad = math.max(2, delta_col - visible_len(left_header))
       blight.output(left_header .. string.rep(" ", pad) .. right_header)
+    end
+  end
+
+  -- Target line — rendered independent of the metric table so a long mob name
+  -- doesn't inflate the table's value column. The "prev kill: ..." right side
+  -- still aligns with the other deltas.
+  do
+    local target_left = C_BYELLOW .. "Target: " .. mob .. C_RESET
+    if prev then
+      local right = C_BYELLOW .. "prev kill: " .. os.date("%Y-%m-%d %H:%M:%S", prev.kill_ts) .. C_RESET
+      local pad = math.max(2, delta_col - visible_len(target_left))
+      blight.output(target_left .. string.rep(" ", pad) .. right)
+    else
+      blight.output(target_left)
     end
   end
 
