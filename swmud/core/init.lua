@@ -77,7 +77,10 @@ function script_load()
   
   -- Load DPR calculator (defines update_total_damage, update_target_status, dpr_primary_loop, get_add_space, etc.)
   script.load('~/.config/blightmud/swmud/services/dpr_calculator.lua')
-  
+
+  -- Load combat history service (per-character on-disk fight log used by calc_battle_stats)
+  script.load('~/.config/blightmud/swmud/services/combat_history.lua')
+
   -- Load damage parser (sets up damage triggers)
   script.load('~/.config/blightmud/swmud/parsers/damage_parser.lua')
   

@@ -66,6 +66,12 @@ trigger.add("^"..P_STR.." staggers and falls to the ground\\.\\.\\. dead\\.", {}
   else
     PROMPT_INFO.last_damage_taken = 0
   end
+  -- Freeze hits/misses/best-round/HP-est/start-credits/start-hp synchronously: a
+  -- follow-up fight against another mob with the same name would otherwise reset
+  -- DPR_INFO[mob] before the deferred summary reads it.
+  if snapshot_kill_struct then
+    snapshot_kill_struct(m[2])
+  end
   mud.send("", {gag=1,})
   tasks.spawn(calc_battle_stats)
 end)
