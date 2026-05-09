@@ -37,7 +37,10 @@ end
 -- `value` is the difference (current - previous); `lower_is_better` flips the
 -- "improvement" direction for metrics like Combat Time / Damage taken / Rounds.
 -- `baseline` (optional) lets us treat tiny deltas as "≈ same" using a 1% threshold.
-function Colors.delta_color(value, lower_is_better, baseline)
+-- `unit` (optional) is appended to the numeric arrow form only — for "≈ same"
+-- we omit the unit so callers don't need to special-case the sentinel.
+function Colors.delta_color(value, lower_is_better, baseline, unit)
+  unit = unit or ""
   local n = tonumber(value) or 0
   if baseline and baseline ~= 0 and math.abs(n) / math.abs(baseline) < 0.01 then
     return (C_WHITE or "") .. "(\xe2\x89\x88 same)" .. C_RESET
@@ -55,7 +58,7 @@ function Colors.delta_color(value, lower_is_better, baseline)
   else
     num_str = string.format("%.2f", n)
   end
-  return color .. arrow .. num_str .. C_RESET
+  return color .. arrow .. num_str .. unit .. C_RESET
 end
 
 -- Color the team alignment value by proximity to a team-switch threshold.
