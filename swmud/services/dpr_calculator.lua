@@ -150,14 +150,24 @@ function DPRCalculator.update_target_status()
   end
 end
 
+-- Local helper for HP/prompt reads inside dpr_primary_loop. The file-scoped
+-- `num` is declared further down (around line 216) so it isn't in scope here;
+-- this duplicates that logic so the hook code below can use it without a
+-- forward-reference.
+local function num_safe(v) return tonumber(STRIP_COLOR(tostring(v or 0))) or 0 end
+
 function DPRCalculator.dpr_primary_loop(source, damage_tier, target, new_round)
   if target ~= nil then
     init_target(target, source)
     if source == "You" then
       if TARGET_INFO["last_target"] ~= target then
         reset_target(target)
+        TARGET_INFO["last_target"] = target
+        -- Fire the "Combat started" marker exactly once per fresh engagement.
+        -- Guarded on the new-target predicate above so re-entries against the
+        -- same mob don't spam markers.
+        if CombatTab then CombatTab.emit_start(target) end
       end
-      TARGET_INFO["last_target"] = target
     end
     if target == "You" or target=="you" then
       TARGET_INFO["last_target"] = source
@@ -165,7 +175,12 @@ function DPRCalculator.dpr_primary_loop(source, damage_tier, target, new_round)
     if not SET_CONTAINS(DPR_INFO[target], source) then
       DPR_INFO[target][source] = {damage = 0, rounds = 0, dpr = 0, ndpr = 0,
                                   hits = 0, misses = 0,
-                                  best_round_damage = 0, current_round_damage = 0,}
+                                  best_round_damage = 0, current_round_damage = 0,
+                                  -- Seed the HP baseline so the first emitted
+                                  -- round's delta is computed against a real
+                                  -- value rather than 0 (avoids spurious -hp
+                                  -- spikes on round 1).
+                                  last_hp_at_round_start = num_safe(PROMPT_INFO.hp),}
     end
   end
   if new_round==1 then
@@ -179,11 +194,42 @@ function DPRCalculator.dpr_primary_loop(source, damage_tier, target, new_round)
       local s = DPR_INFO[round_target][source]
       -- Close out the previous round before incrementing the rounds counter:
       -- if the round we're about to leave dealt more damage than any prior, record it.
-      if (s.current_round_damage or 0) > (s.best_round_damage or 0) then
-        s.best_round_damage = s.current_round_damage
+      local prev_round_damage = s.current_round_damage or 0
+      if prev_round_damage > (s.best_round_damage or 0) then
+        s.best_round_damage = prev_round_damage
       end
       s.current_round_damage = 0
       s.rounds = s.rounds + 1
+
+      -- Per-round summary → combat tab (tab-only, via blight.output_to).
+      -- s.rounds is post-increment, so s.rounds - 1 is the round that just
+      -- ended. The s.rounds > 1 gate skips the first new_round tick (which
+      -- represents "starting round 1" — no prior round to summarize).
+      if CombatTab and source == "You"
+          and round_target == TARGET_INFO["last_target"]
+          and s.rounds > 1
+          and TARGET_INFO[round_target]
+          and TARGET_INFO[round_target]["dead"] ~= 1 then
+        local hp_now = num_safe(PROMPT_INFO.hp)
+        local hp_at_start = s.last_hp_at_round_start or hp_now
+        CombatTab.emit_round_end({
+          round_num         = s.rounds - 1,
+          round_damage      = prev_round_damage,
+          best_round        = s.best_round_damage or 0,
+          cum_damage        = s.damage or 0,
+          dpr               = s.dpr or 0,
+          hits              = s.hits or 0,
+          misses            = s.misses or 0,
+          mob_name          = round_target,
+          mob_pct           = TARGET_INFO.target_pct or 0,
+          mob_health        = TARGET_INFO.target_health or 0,
+          mob_total_health  = TARGET_INFO.total_health or 0,
+          player_hp         = hp_now,
+          player_max_hp     = num_safe(PROMPT_INFO.hp_max),
+          player_hp_delta   = hp_now - hp_at_start,
+        })
+        s.last_hp_at_round_start = hp_now
+      end
     end
   end
   if target == TARGET_INFO["last_target"] then
@@ -429,12 +475,22 @@ function DPRCalculator.calc_battle_stats()
     if char == "" or char:find("Unknown") then char = "unknown" end
   end
 
-  local prev = nil
+  -- Per-mob lifetime aggregates (existing, unchanged). The per-mob "previous
+  -- kill" comparison is superseded by the SessionLog-driven multi-column
+  -- layout below, but the lifetime block still pulls from CombatHistory.
   local agg = nil
   if CombatHistory and mob ~= "" then
-    prev = CombatHistory.get_previous(char, mob)
     agg = CombatHistory.get_aggregates(char, mob)
   end
+  local is_first_mob_kill = (agg == nil) or ((agg.count or 0) == 0)
+
+  -- Cross-mob rolling history: up to MAX_PREV previous kills, newest first.
+  -- Each entry has the same shape as build_snapshot()'s return value.
+  local MAX_PREV = 3
+  local prev_kills = (SessionLog and SessionLog.recent(MAX_PREV)) or {}
+
+  -- Combat-ended marker → both tab and main (filter-routed in 021_tabs.lua).
+  if CombatTab then CombatTab.emit_end(mob, snap.rounds, snap.damage) end
 
   -- Layout sizing
   local term_w = 80
@@ -442,183 +498,253 @@ function DPRCalculator.calc_battle_stats()
     local w, _ = blight.terminal_dimensions()
     if w and w > 0 then term_w = w end
   end
-  -- total_width sized in the rendering section below, after we know delta_col
 
-  -- Build the row list first so we can size the delta column to the longest
-  -- "label ... value" combo, keeping the dot leader minimal (always 3 dots).
+  -- ---------------- Cell + row builders ----------------
+  --
+  -- A row's `cells` array has one entry per column: cells[1] is the current
+  -- kill (no delta — it's the baseline); cells[2..N] are previous kills, each
+  -- rendering "<value> (<delta vs current>)" when both values are present.
+  -- The delta is `prev - current` so an absolute "vs current" framing applies:
+  --   * higher-is-better metric, prev > current → prev was better (green)
+  --   * lower-is-better metric, prev < current → prev was better (green)
+  -- The existing `delta()` helper computes `a - b` and DELTA_COLOR carries the
+  -- correct sign/color semantics.
+
+  local function with_yellow(s)
+    return C_BYELLOW .. tostring(s or "") .. C_RESET
+  end
+
+  local function f_int(v)
+    if v == nil then return "-" end
+    return tostring(math.floor(num(v)))
+  end
+  local function f_dpr(v)
+    if v == nil then return "-" end
+    return string.format("%.2f", num(v))
+  end
+  local function f_pct01(v)  -- accuracy is stored as 0..1
+    if v == nil then return "-" end
+    return tostring(math.floor(num(v) * 100 + 0.5)) .. "%"
+  end
+  local function f_signed_int(v)
+    if v == nil then return "-" end
+    local nn = math.floor(num(v))
+    return (nn >= 0 and "+" or "") .. tostring(nn)
+  end
+  local function f_mob_hp(v)
+    if v == nil or num(v) <= 0 then return "-" end
+    return "~" .. tostring(math.floor(num(v)))
+  end
+  local function f_time(v)
+    if v == nil then return "-" end
+    return fmt_time(v)
+  end
+
+  -- Build the column cell for a previous kill: "<value>" or "<value> (<delta>)".
+  local function prev_cell(prev_val, current_val, formatter, lower_better, unit)
+    local cell = with_yellow(formatter(prev_val))
+    if prev_val ~= nil and current_val ~= nil then
+      local d = delta(prev_val, current_val, lower_better, unit)
+      if d and d ~= "" then
+        cell = cell .. " (" .. d .. ")"
+      end
+    end
+    return cell
+  end
+
+  -- Build a row for a snapshot field, applying the same formatter to current
+  -- and each prev cell, with a delta on each prev cell.
+  local function row_for_field(label, field, formatter, lower_better, unit)
+    local cur = snap[field]
+    local cells = { with_yellow(formatter(cur)) }
+    for _, p in ipairs(prev_kills) do
+      cells[#cells+1] = prev_cell(p[field], cur, formatter, lower_better, unit)
+    end
+    return { label = with_yellow(label), cells = cells }
+  end
+
   local rows = {}
-  local function add_row(label, value, delta_text)
-    rows[#rows+1] = {
-      label = C_BYELLOW .. label .. C_RESET,
-      value = C_BYELLOW .. value .. C_RESET,
-      delta = delta_text or "",
-    }
-  end
 
-  -- Target is rendered separately below (after delta_col is known) so a long
-  -- mob name doesn't inflate value_col_w for every metric row in the table.
+  table.insert(rows, row_for_field("Damage",      "damage",  f_int, false, ""))
+  table.insert(rows, row_for_field("DPR",         "dpr",     f_dpr, false, ""))
+  table.insert(rows, row_for_field("eDamage",     "edamage", f_int, true,  ""))
+  table.insert(rows, row_for_field("eDPR",        "edpr",    f_dpr, true,  ""))
 
-  add_row("Damage", fmt_int(snap.damage),
-          prev and delta(snap.damage, prev.damage, false) or "")
-  add_row("DPR", tostring(snap.dpr),
-          prev and delta(snap.dpr, prev.dpr, false) or "")
-  add_row("eDamage", fmt_int(snap.edamage),
-          prev and delta(snap.edamage, prev.edamage, true) or "")
-  add_row("eDPR", tostring(snap.edpr),
-          prev and delta(snap.edpr, prev.edpr, true) or "")
-
-  if (snap.hits + snap.misses) > 0 then
-    -- No delta on Hit / Miss row — Accuracy below carries the meaningful change
-    -- (a hits-only delta is misleading when only the miss count moved).
-    add_row("Hit / Miss",
-            tostring(snap.hits) .. " / " .. tostring(snap.misses),
-            "")
-    local acc_pct = math.floor(snap.accuracy * 100 + 0.5)
-    local acc_delta = ""
-    if prev and prev.accuracy ~= nil then
-      local prev_acc = math.floor(prev.accuracy * 100 + 0.5)
-      acc_delta = delta(acc_pct, prev_acc, false, "%")
+  if (num(snap.hits) + num(snap.misses)) > 0 then
+    -- Hit / Miss: no delta (a hits-only delta is misleading; Accuracy below
+    -- carries the meaningful change). Just print "H / M" per column.
+    local function f_hm(s)
+      if s == nil then return "-" end
+      return tostring(math.floor(num(s.hits))) .. " / " .. tostring(math.floor(num(s.misses)))
     end
-    add_row("Accuracy", tostring(acc_pct) .. "%", acc_delta)
-  end
-
-  if snap.best_round_damage > 0 then
-    add_row("Best round", fmt_int(snap.best_round_damage),
-            (prev and prev.best_round_damage ~= nil) and
-              delta(snap.best_round_damage, prev.best_round_damage, false) or "")
-  end
-
-  if snap.mob_hp_estimate > 0 then
-    local d = ""
-    if prev and prev.mob_hp_estimate and prev.mob_hp_estimate > 0 then
-      d = delta(snap.mob_hp_estimate, prev.mob_hp_estimate, false)
+    local cells = { with_yellow(f_hm(snap)) }
+    for _, p in ipairs(prev_kills) do
+      cells[#cells+1] = with_yellow(f_hm(p))
     end
-    add_row("Mob HP est", "~" .. fmt_int(snap.mob_hp_estimate), d)
+    table.insert(rows, { label = with_yellow("Hit / Miss"), cells = cells })
+
+    table.insert(rows, row_for_field("Accuracy", "accuracy", f_pct01, false, "%"))
   end
 
-  if snap.damage_taken > 0 then
-    add_row("Damage taken", fmt_int(snap.damage_taken),
-            (prev and prev.damage_taken ~= nil) and
-              delta(snap.damage_taken, prev.damage_taken, true) or "")
+  if num(snap.best_round_damage) > 0 then
+    table.insert(rows, row_for_field("Best round", "best_round_damage", f_int, false, ""))
   end
 
-  if snap.hp_cost ~= 0 then
-    -- HP cost is signed (typically negative). "Less negative" = lost less HP =
-    -- better, so treat as higher-is-better.
-    add_row("HP cost", tostring(math.floor(snap.hp_cost)),
-            (prev and prev.hp_cost ~= nil) and
-              delta(snap.hp_cost, prev.hp_cost, false) or "")
+  if num(snap.mob_hp_estimate) > 0 then
+    table.insert(rows, row_for_field("Mob HP est", "mob_hp_estimate", f_mob_hp, false, ""))
   end
 
-  if snap.credits_gained ~= 0 then
-    local val = (snap.credits_gained >= 0 and "+" or "") .. tostring(math.floor(snap.credits_gained))
-    add_row("Credits", val,
-            (prev and prev.credits_gained ~= nil) and
-              delta(snap.credits_gained, prev.credits_gained, false) or "")
+  if num(snap.damage_taken) > 0 then
+    table.insert(rows, row_for_field("Damage taken", "damage_taken", f_int, true, ""))
   end
 
-  if snap.force_deflections > 0 then
-    add_row("Force deflections", fmt_int(snap.force_deflections),
-            (prev and prev.force_deflections ~= nil) and
-              delta(snap.force_deflections, prev.force_deflections, false) or "")
+  if num(snap.hp_cost) ~= 0 then
+    -- hp_cost is signed (typically negative). "Less negative" = lost less HP
+    -- = better → treat as higher-is-better, matching the prior behavior.
+    table.insert(rows, row_for_field("HP cost", "hp_cost", function(v)
+      if v == nil then return "-" end
+      return tostring(math.floor(num(v)))
+    end, false, ""))
   end
 
-  if snap.weapon_skill ~= "" and snap.weapon_skill_pct > 0 then
-    local d = ""
-    if prev and prev.weapon_skill == snap.weapon_skill and prev.weapon_skill_pct then
-      d = delta(snap.weapon_skill_pct, prev.weapon_skill_pct, false, "%")
+  if num(snap.credits_gained) ~= 0 then
+    table.insert(rows, row_for_field("Credits", "credits_gained", f_signed_int, false, ""))
+  end
+
+  if num(snap.force_deflections) > 0 then
+    table.insert(rows, row_for_field("Force deflections", "force_deflections", f_int, false, ""))
+  end
+
+  if snap.weapon_skill and snap.weapon_skill ~= "" and num(snap.weapon_skill_pct) > 0 then
+    -- Show "weapon (NN%)"; only render a delta when the prev kill used the
+    -- SAME weapon (cross-weapon % comparison is misleading).
+    local function f_weapon(s)
+      if s == nil then return "-" end
+      local w = s.weapon_skill or ""
+      local p = num(s.weapon_skill_pct)
+      if w == "" then return "-" end
+      return w .. " (" .. tostring(math.floor(p)) .. "%)"
     end
-    add_row("Weapon skill",
-            snap.weapon_skill .. " (" .. tostring(snap.weapon_skill_pct) .. "%)", d)
+    local cells = { with_yellow(f_weapon(snap)) }
+    for _, p in ipairs(prev_kills) do
+      local cell = with_yellow(f_weapon(p))
+      if p.weapon_skill == snap.weapon_skill and p.weapon_skill_pct ~= nil then
+        local d = delta(num(p.weapon_skill_pct), num(snap.weapon_skill_pct), false, "%")
+        if d and d ~= "" then cell = cell .. " (" .. d .. ")" end
+      end
+      cells[#cells+1] = cell
+    end
+    table.insert(rows, { label = with_yellow("Weapon skill"), cells = cells })
   end
 
-  if snap.exp_diff ~= 0 then
-    add_row("Experience", tostring(math.floor(snap.exp_diff)),
-            prev and delta(snap.exp_diff, prev.exp_diff, false) or "")
-    add_row("Exp/s", tostring(snap.exp_per_sec),
-            prev and delta(snap.exp_per_sec, prev.exp_per_sec, false) or "")
+  if num(snap.exp_diff) ~= 0 then
+    table.insert(rows, row_for_field("Experience", "exp_diff", f_int, false, ""))
+    table.insert(rows, row_for_field("Exp/s",       "exp_per_sec", f_int, false, ""))
   end
 
-  add_row("Combat Time", fmt_time(snap.combat_time_sec),
-          prev and delta(snap.combat_time_sec, prev.combat_time_sec, true) or "")
-  add_row("Rounds", tostring(snap.rounds),
-          prev and delta(snap.rounds, prev.rounds, true) or "")
+  table.insert(rows, row_for_field("Combat Time", "combat_time_sec", f_time, true, "s"))
+  table.insert(rows, row_for_field("Rounds",      "rounds",          f_int, true, ""))
 
-  -- Compute column widths from row content so labels left-align and values
-  -- right-align in clean, equal-width columns regardless of which conditional
-  -- rows fired.
-  local SEP_LEN = 5  -- " ... "
+  -- ---------------- Column-header row ("Target: <mob>" per column) ----------------
+
+  local function fmt_target_header(name)
+    return "Target: " .. (name ~= nil and name ~= "" and tostring(name) or "?")
+  end
+
+  local headers = { with_yellow(fmt_target_header(mob)) }
+  for _, p in ipairs(prev_kills) do
+    headers[#headers+1] = with_yellow(fmt_target_header(p.mob))
+  end
+
+  -- ---------------- Column widths + narrow-terminal truncation ----------------
+
   local label_col_w = 0
-  local value_col_w = 0
-  local max_delta = 0
   for _, r in ipairs(rows) do
-    local lw = visible_len(r.label)
-    local vw = visible_len(r.value)
-    if lw > label_col_w then label_col_w = lw end
-    if vw > value_col_w then value_col_w = vw end
-    local dw = visible_len(r.delta)
-    if dw > max_delta then max_delta = dw end
+    local w = visible_len(r.label)
+    if w > label_col_w then label_col_w = w end
   end
-  local delta_col = label_col_w + SEP_LEN + value_col_w + 2  -- 2-space gutter
-  local total_width = math.min(term_w, delta_col + math.max(max_delta, 30))
 
-  -- Header. When this is the first kill of the mob, drop the right-side marker
-  -- and the lifetime footer below — there's no comparison to make, so those
-  -- lines just take up space without adding info.
-  local is_first_kill = (prev == nil)
-  do
-    local left_header = C_BYELLOW .. "####### Combat Summary #######" .. C_RESET
-    if is_first_kill then
-      blight.output(left_header)
-    else
-      local right_header = C_BYELLOW .. "##### vs Last Fight (" .. fmt_ago(prev.kill_ts) .. ") #####" .. C_RESET
-      local pad = math.max(2, delta_col - visible_len(left_header))
-      blight.output(left_header .. string.rep(" ", pad) .. right_header)
+  local N = #headers  -- 1 (current) + #prev_kills
+  local col_widths = {}
+  for j = 1, N do
+    col_widths[j] = visible_len(headers[j])
+    for _, r in ipairs(rows) do
+      local cw = visible_len(r.cells[j] or "")
+      if cw > col_widths[j] then col_widths[j] = cw end
     end
   end
 
-  -- Target line — rendered independent of the metric table so a long mob name
-  -- doesn't inflate the table's value column. The "prev kill: ..." right side
-  -- still aligns with the other deltas.
+  local function total_table_w(nc)
+    local t = label_col_w + 5  -- " ... "
+    for j = 1, nc do t = t + col_widths[j] end
+    if nc > 1 then t = t + 2 * (nc - 1) end
+    return t
+  end
+
+  -- Drop the rightmost (oldest) prev columns until the table fits the terminal.
+  while N > 1 and total_table_w(N) > term_w do
+    N = N - 1
+  end
+
+  local render_w = math.min(term_w, total_table_w(N))
+
+  -- ---------------- Rendering ----------------
+
+  -- Top header (no right-side timestamp annotation anymore — column headers
+  -- replace it).
+  blight.output(C_BYELLOW .. "####### Combat Summary #######" .. C_RESET)
+
+  -- Column-header row: align "Target: <mob>" with the start of each data
+  -- column. Leading-spaces equal to label_col_w + 5 (the " ... " gutter),
+  -- then each header padded to its column width and joined by "  ".
   do
-    local target_left = C_BYELLOW .. "Target: " .. mob .. C_RESET
-    if prev then
-      local right = C_BYELLOW .. "prev kill: " .. os.date("%Y-%m-%d %H:%M:%S", prev.kill_ts) .. C_RESET
-      local pad = math.max(2, delta_col - visible_len(target_left))
-      blight.output(target_left .. string.rep(" ", pad) .. right)
-    else
-      blight.output(target_left)
+    local lead = string.rep(" ", label_col_w + 5)
+    local parts = {}
+    for j = 1, N do
+      parts[#parts+1] = pad_to(headers[j], col_widths[j])
     end
+    blight.output(lead .. table.concat(parts, "  "))
+  end
+
+  -- Data rows: "<label> .... <cell1>  <cell2>  ..."
+  local function leader_text(label)
+    local target_w = label_col_w + 5
+    local lw = visible_len(label)
+    local fill = target_w - lw - 2  -- 2 = leading " " + trailing " "
+    if fill < 3 then fill = 3 end
+    return label .. " " .. string.rep(".", fill) .. " "
   end
 
   for _, r in ipairs(rows) do
-    blight.output(leader_row(r.label, r.value, label_col_w, value_col_w, r.delta))
+    local lead = leader_text(r.label)
+    local cell_strs = {}
+    for j = 1, N do
+      cell_strs[#cell_strs+1] = pad_to(r.cells[j] or with_yellow("-"), col_widths[j])
+    end
+    blight.output(lead .. table.concat(cell_strs, "  "))
   end
 
-  -- ---------------- Lifetime footer ----------------
-  local agg_count = (agg and agg.count) or 0
-  local will_be_count = agg_count + 1  -- this fight will increment count when we record it below
+  -- ---------------- Separator + Lifetime footer (per-mob) ----------------
 
-  -- Build separator that fits the total render width
   local function sep_line(label)
     local prefix = "\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80 "
     local suffix_min = " "
     local label_visible = visible_len(label)
-    local pad = total_width - visible_len(prefix) - label_visible - visible_len(suffix_min)
+    local pad = render_w - visible_len(prefix) - label_visible - visible_len(suffix_min)
     if pad < 3 then pad = 3 end
     return (C_GREEN or "") .. prefix .. C_RESET .. label
            .. " " .. (C_GREEN or "") .. string.rep("\xe2\x94\x80", pad) .. C_RESET
   end
 
-  if not is_first_kill then
-    -- Lifetime header reflects the count after this fight is recorded.
-    local first_ts = (agg and agg.first_kill_ts) or snap.kill_ts
-    local since_str = os.date("%Y-%m-%d", first_ts)
-    blight.output(sep_line(C_BYELLOW .. "Lifetime ("
-                  .. tostring(will_be_count) .. " fights, since " .. since_str .. ")" .. C_RESET))
+  local agg_count = (agg and agg.count) or 0
+  local will_be_count = agg_count + 1  -- includes this fight
 
-    -- We compute lifetime stats *after* folding this snapshot in, so the printed
-    -- numbers reflect "including this fight".
+  if not is_first_mob_kill then
+    -- Lifetime header — no "since DATE" suffix (dropped per design).
+    blight.output(sep_line(C_BYELLOW .. "Lifetime ("
+                  .. tostring(will_be_count) .. " fights)" .. C_RESET))
+
+    -- Fold this snapshot in so the printed numbers reflect "including this fight".
     local sim_agg = {}
     for k, v in pairs(agg or {}) do sim_agg[k] = v end
     CombatHistory.update_agg(sim_agg, snap)
@@ -654,7 +780,6 @@ function DPRCalculator.calc_battle_stats()
                   .. C_RESET)
 
     -- Rank line (only when we have at least 3 fights so the bracket is meaningful)
-    -- 100% = matches best-ever on that metric, 0% = matches worst-ever.
     if will_be_count >= 3 then
       local parts = {}
       local p
@@ -672,11 +797,34 @@ function DPRCalculator.calc_battle_stats()
     end
   end
 
-  -- Trailing blank for spacing — but only when there's actually a footer to
-  -- separate from. First-kill summaries are tight and don't need the gap.
-  if not is_first_kill then
-    blight.output("")
+  -- ---------------- Session footer (cross-mob, in-memory) ----------------
+  --
+  -- Record THIS kill into the session log first so session_stats() reflects
+  -- "including this fight" (mirrors how Lifetime sim-folds the snapshot in
+  -- above). prev_kills was captured BEFORE this record() so the multi-column
+  -- table's "previous N" doesn't include the current kill.
+
+  if SessionLog then
+    SessionLog.record(snap)
+    local sess = SessionLog.session_stats()
+    if sess.kills > 0 then
+      local kills_label = (sess.kills == 1) and "kill" or "kills"
+      blight.output(sep_line(C_BYELLOW .. "Session (" .. tostring(sess.kills) .. " " .. kills_label
+                    .. ", " .. fmt_short_time(sess.elapsed_sec) .. ")" .. C_RESET))
+      local exp_sign = (sess.total_exp_diff >= 0) and "+" or ""
+      blight.output(C_BYELLOW .. "  " .. tostring(sess.kills) .. " " .. kills_label .. "  "
+                    .. tostring(math.floor(sess.total_damage)) .. " dmg  "
+                    .. exp_sign .. tostring(math.floor(sess.total_exp_diff)) .. " xp  "
+                    .. "avg time " .. fmt_short_time(sess.avg_time) .. "  "
+                    .. "avg DPR " .. string.format("%.1f", sess.avg_dpr) .. C_RESET)
+      if sess.mobs_summary_str and sess.mobs_summary_str ~= "" then
+        blight.output(C_BYELLOW .. "  mobs: " .. sess.mobs_summary_str .. C_RESET)
+      end
+    end
   end
+
+  -- Trailing blank for spacing
+  blight.output("")
 
   -- Persist the snapshot for next time
   if CombatHistory and mob ~= "" then
