@@ -74,7 +74,16 @@ function script_load()
   
   -- Load combat models (defines tier_lookup, BSENSE data, target functions)
   script.load('~/.config/blightmud/swmud/models/combat.lua')
-  
+
+  -- Combat tab routing (must load before dpr_calculator.lua so CombatTab is
+  -- visible to dpr_primary_loop's emit hooks).
+  script.load('~/.config/blightmud/swmud/services/combat_tab.lua')
+
+  -- Session log: in-memory rolling kill history + cross-mob aggregates.
+  -- calc_battle_stats reads SessionLog.recent() for the multi-column summary
+  -- and SessionLog.record() at the end of each fight, so load before dpr_calculator.
+  script.load('~/.config/blightmud/swmud/services/session_log.lua')
+
   -- Load DPR calculator (defines update_total_damage, update_target_status, dpr_primary_loop, get_add_space, etc.)
   script.load('~/.config/blightmud/swmud/services/dpr_calculator.lua')
 
