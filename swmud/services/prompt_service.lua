@@ -257,7 +257,17 @@ end
 function PromptService.input_loop(line)
   local line_text = line:line()
   local line_raw = line:raw()
-  
+
+  -- Raw secondary-input mode (set by the raw-input output listener in the
+  -- private 020_character.lua). While a SWmud "[INPUT ...]" prompt is open
+  -- the typed value must reach the MUD verbatim, so skip the no-space-alias
+  -- and nickname preprocessing entirely. The user alias group is already
+  -- disabled there, so returning the line untouched here closes the only
+  -- other path that could rewrite the input.
+  if RAW_INPUT_ACTIVE then
+    return line
+  end
+
   -- Preprocess no-space aliases that BlightMud doesn't handle well
   -- These are registered by create_no_space_alias and create_no_space_nested_alias
   -- Check against all registered patterns and replace if matched
