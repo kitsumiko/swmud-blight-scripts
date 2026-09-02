@@ -42,24 +42,53 @@ trigger.add("^SWmud has been up for:([ ]*)([0-9]*)d([ ]*)([0-9]*)h([ ]*)([0-9]*)
 end)
 
 -- expcheck triggers
+--
+-- Besides recording the exp target for each guild in EXP_TABLE, these also
+-- update LEVEL_TABLE so guild levels stay current without needing a `score`.
+--   "You need N more experience to advance slicer to 48."  -> Slicer = 47
+--   "You can advance jedi to 31."                           -> Jedi   = 30
+--   "You can advance guild jedi to level 31 now."           -> Jedi   = 30
+--   "You are level 19 scientist."                           -> Scientist = 19
+-- High Mortal is not reported by expcheck, so it still comes from `score`.
+local function set_guild_level_from_expcheck(guild_raw, level)
+  local guild = (TITLE_CASE(TRIM_STRING(guild_raw)))
+  level = tonumber(level)
+  if not guild or not level or not LEVEL_TABLE then
+    return
+  end
+  local guilds_set = SET(PROMPT_INFO.guilds)
+  if not guilds_set[guild] then
+    return
+  end
+  if level > 0 then
+    LEVEL_TABLE[guild] = level
+  elseif SET_CONTAINS(LEVEL_TABLE, guild) then
+    REMOVE_FROM_SET(LEVEL_TABLE, guild)
+  end
+end
+
 trigger.add("^You need ([0-9]*) more experience to advance ([a-zA-Z]* ?[a-zA-Z]*) to ([0-9]*)\\.", {}, function (m)
   EXP_TABLE["x_snapshot"] = PROMPT_INFO.exp
   EXP_TABLE[TITLE_CASE(m[3])] = PROMPT_INFO.exp + tonumber(m[2])
+  set_guild_level_from_expcheck(m[3], tonumber(m[4]) - 1)
 end)
 
 trigger.add("^You can advance guild ([a-zA-Z]* ?[a-zA-Z]*) to level ([0-9]*) now\\.", {}, function (m)
   EXP_TABLE["x_snapshot"] = PROMPT_INFO.exp
-  EXP_TABLE[TITLE_CASE(m[3])] = "adv"
+  EXP_TABLE[TITLE_CASE(m[2])] = "adv"
+  set_guild_level_from_expcheck(m[2], tonumber(m[3]) - 1)
 end)
 
 trigger.add("^You can advance ([a-zA-Z]* ?[a-zA-Z]*) to ([0-9]*)\\.", {}, function (m)
   EXP_TABLE["x_snapshot"] = PROMPT_INFO.exp
   EXP_TABLE[TITLE_CASE(m[2])] = "adv"
+  set_guild_level_from_expcheck(m[2], tonumber(m[3]) - 1)
 end)
 
 trigger.add("^You are level ([0-9]*) ([a-zA-Z]* ?[a-zA-Z]*)\\.", {}, function (m)
   EXP_TABLE["x_snapshot"] = PROMPT_INFO.exp
   EXP_TABLE[TITLE_CASE(m[3])] = "max"
+  set_guild_level_from_expcheck(m[3], m[2])
 end)
 
 trigger.add("^You must advance (.*) before advancing ([a-zA-Z]* ?[a-zA-Z]*)\\. \\(([0-9]*) more experience to advance both\\)\\.", {}, function (m)
